@@ -1,2 +1,4 @@
-# OSPRayTinyLoader
-A mesh viewer program using OSPRay + TinyObjLoader as backends. 
+# OSPRay Volume Experiment Viewer
+
+This is an experimental OSPRay volume renderer
+
