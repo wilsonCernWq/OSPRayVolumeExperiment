@@ -1,0 +1,18 @@
+ospray commit is using multi-threading also !!!
+
+qwu@hastur [build (volume-debug)]: vglrun ./osp_tiny_loader --osp:numthreads 1
+finish commits 1.71221seconds
+qwu@hastur [build (volume-debug)]: vglrun ./osp_tiny_loader --osp:numthreads 2
+finish commits 1.30325seconds
+qwu@hastur [build (volume-debug)]: vglrun ./osp_tiny_loader --osp:numthreads 3
+finish commits 1.19145seconds
+qwu@hastur [build (volume-debug)]: vglrun ./osp_tiny_loader --osp:numthreads 4
+finish commits 1.11355seconds
+qwu@hastur [build (volume-debug)]: vglrun ./osp_tiny_loader --osp:numthreads 8
+finish commits 0.657457seconds
+qwu@hastur [build (volume-debug)]: vglrun ./osp_tiny_loader --osp:numthreads 16
+finish commits 0.467024seconds
+qwu@hastur [build (volume-debug)]: vglrun ./osp_tiny_loader --osp:numthreads 32
+finish commits 0.321223seconds
+qwu@hastur [build (volume-debug)]: vglrun ./osp_tiny_loader --osp:numthreads 64
+finish commits 0.27026seconds
