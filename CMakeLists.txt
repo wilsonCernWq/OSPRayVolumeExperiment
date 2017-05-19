@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(OSPRayTinyLoader)
+project(OSPRayVolumeExperiment)
 #
 # include host specification file
 cmake_host_system_information(RESULT SYSNAME QUERY HOSTNAME)
@@ -33,5 +33,5 @@ endif()
 file(GLOB_RECURSE CXX "src/*.cpp")
 file(GLOB_RECURSE HXX "src/*.h")
 include_directories(${OSPRAY_INCLUDE_DIRS})
-add_executable(osp_tiny_loader ${CXX} ${HXX} ${SHADERS})
-target_link_libraries(osp_tiny_loader ${COMMON_LIBS} ${OSPRAY_LIBRARIES})
+add_executable(volume_display ${CXX} ${HXX} ${SHADERS})
+target_link_libraries(volume_display ${COMMON_LIBS} ${OSPRAY_LIBRARIES})
