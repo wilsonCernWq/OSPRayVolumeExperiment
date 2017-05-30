@@ -18,13 +18,12 @@ endif()
 #
 # load required libraries
 include(cmake/common.cmake)
-find_package(ospray REQUIRED)
 #
 # install dlls or shader
 file(GLOB_RECURSE SHADERS "src/*.glsl")
 set(COPYLIST ${COMMON_DLLS} ${SHADERS})
 if(EXECUTABLE_OUTPUT_PATH)
-  DeployRepo(${COPYLIST} ${EXECUTABLE_OUTPUT_PATH})
+  DeployRepo("${COPYLIST}" "${EXECUTABLE_OUTPUT_PATH}")
 else()
   DeployRepo("${COPYLIST}" "${CMAKE_BINARY_DIR}")
 endif()
@@ -32,6 +31,5 @@ endif()
 # include sources
 file(GLOB_RECURSE CXX "src/*.cpp")
 file(GLOB_RECURSE HXX "src/*.h")
-include_directories(${OSPRAY_INCLUDE_DIRS})
-add_executable(volume_display ${CXX} ${HXX} ${SHADERS})
-target_link_libraries(volume_display ${COMMON_LIBS} ${OSPRAY_LIBRARIES})
+add_executable(VolumeDisplay ${CXX} ${HXX} ${SHADERS})
+target_link_libraries(VolumeDisplay ${COMMON_LIBS})

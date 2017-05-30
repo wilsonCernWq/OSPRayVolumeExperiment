@@ -16,8 +16,8 @@ unsigned int WINX = 0, WINY = 0;
 const vec2i WINSIZE(512, 512);
 
 //! texture maps
-uint32_t*          fb_osp;
-cyGLRenderBuffer2D fb_gl;
+uint32_t*           fb_osp;
+cyGLRenderTexture2D fb_gl;
 
 //! OSPRay objects
 OSPModel world;
@@ -113,8 +113,8 @@ void render()
 
 int main(int argc, const char **argv)
 {
-    ospInit(&argc, argv);
-
+    ospInit(&argc, argv);    
+    
     //! create world and renderer
     world = ospNewModel();
     renderer = ospNewRenderer("scivis"); // possible options: "pathtracer" "raytracer"

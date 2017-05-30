@@ -3,6 +3,7 @@
 #
 # OSPRay development directory
 set(ospray_DIR /home/sci/qwu/OSPRay/OSPRay-git/install/lib64/cmake/ospray-1.3.0)
+set(ospray_SRC /home/sci/qwu/OSPRay/OSPRay-git)
 # 
 # other library
 set(embree_DIR /home/sci/qwu/software/embree-2.14.0.x86_64.linux/lib/cmake/embree-2.14.0)

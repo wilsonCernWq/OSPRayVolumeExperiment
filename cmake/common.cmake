@@ -83,17 +83,8 @@ ENDIF()
 #   https://github.com/cemyuksel/cyCodeBase.git
 INCLUDE_DIRECTORIES(library ${PROJECT_SOURCE_DIR}/external/cyCodeBase)
 #
-#--- add CImg
-#   https://github.com/dtschump/CImg
-# INCLUDE_DIRECTORIES(library ${PROJECT_SOURCE_DIR}/external/CImg/CImg-2.0.0)
-#
-#--- lodePNG
-#   http://lodev.org/lodepng/
-# SET(LodePNG_ROOT_PATH "${PROJECT_SOURCE_DIR}/external/lodepng")
-# INCLUDE(${PROJECT_SOURCE_DIR}/cmake/lodepng.cmake)
-# IF(LodePNG_FOUND)
-#   INCLUDE_DIRECTORIES(library ${LodePNG_INCLUDE_DIR})
-#   LIST(APPEND COMMON_LIBS ${LodePNG_LIBRARIES})
-# ELSE()
-#   MESSAGE(FATAL_ERROR " LodePNG not found!")
-# ENDIF()
+#--- add OSPRay
+FIND_PACKAGE(ospray REQUIRED)
+INCLUDE_DIRECTORIES(${OSPRAY_INCLUDE_DIRS})
+LIST(APPEND COMMON_LIBS ${OSPRAY_LIBRARIES})
+MESSAGE(STATUS "OSPRAY_LIBRARIES ${OSPRAY_LIBRARIES}")
