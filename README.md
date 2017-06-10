@@ -1,4 +1,4 @@
 # OSPRay Volume Experiment Viewer
 
-This is an experimental OSPRay volume renderer
+This is an simple OSPRay example for testing volume renderer
 
