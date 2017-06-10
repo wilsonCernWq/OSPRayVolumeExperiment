@@ -5,31 +5,55 @@
 #ifndef _CALLBACK_H_
 #define _CALLBACK_H_
 
-using namespace ospcommon;
-
-//! window size
-unsigned int WINX = 0, WINY = 0;
-const vec2i WINSIZE = vec2i(512, 512);
-
-//! texture maps
-uint32_t*           ofb;
-cyGLRenderTexture2D gfb;
-
-//! OSPRay objects
-OSPModel world;
-OSPCamera camera;
-OSPRenderer renderer;
-OSPFrameBuffer framebuffer;
-
-//! camera objects
-float camZoom = 1.0f;
-vec3f camFocus = vec3f(0, 0, 0);
-vec3f camPos = vec3f(0.00175993, -2.58563, 25.0471);
-vec3f camUp = vec3f(0.41229, 0.100841, 1.67924);
-vec3f camDir = camFocus - camPos;
-Trackball camRotate(true);
+#include "common.h"
+#include "helper.h"
+#include "global.h"
 
 //! functions
+inline void Clean()
+{
+    std::cout << "cleaning" << std::endl;
+    if (framebuffer != nullptr) {
+	gfb.Delete();
+	ospUnmapFrameBuffer(ofb, framebuffer);       
+	ospFreeFrameBuffer(framebuffer);
+	framebuffer = nullptr;
+    }
+    if (world != nullptr) { 
+	ospRelease(world); 
+	world = nullptr;
+    }
+    if (camera != nullptr) { 
+	ospRelease(camera); 
+	camera = nullptr;
+    }
+    if (renderer != nullptr) {
+	ospRelease(renderer);
+ 	renderer = nullptr;
+    }
+    if (transferFcn != nullptr) {
+	ospRelease(transferFcn);
+	transferFcn = nullptr;
+    }
+    std::cout << "cleaning other stuffs" << std::endl;
+    for (auto& c : cleanlist) { c(); }
+}
+
+inline void SetupTF(const std::vector<vec3f>& colors, const std::vector<float>& opacities)
+{
+    //! setup trasnfer function
+    transferFcn = ospNewTransferFunction("piecewise_linear");
+    OSPData colorsData = ospNewData(colors.size(), OSP_FLOAT3, colors.data());
+    ospCommit(colorsData);
+    OSPData opacityData = ospNewData(opacities.size(), OSP_FLOAT, opacities.data());
+    ospCommit(opacityData);
+    const vec2f valueRange(static_cast<float>(0), static_cast<float>(255));
+    ospSetData(transferFcn, "colors", colorsData);
+    ospSetData(transferFcn, "opacities", opacityData);
+    ospSetVec2f(transferFcn, "valueRange", (osp::vec2f&)valueRange);
+    ospCommit(transferFcn);
+}
+
 inline void UpdateCamera(bool cleanbuffer = true)
 {
     camDir = camFocus - camPos;
@@ -59,7 +83,10 @@ inline void GetMousePosition(GLint x, GLint y) {
 }
 
 inline void GetNormalKeys(unsigned char key, GLint x, GLint y) {
-    if (key == 27) { glutLeaveMainLoop(); }
+    if (key == 27) { 
+	Clean();
+	glutLeaveMainLoop(); 
+    }
     if (key == 'p') { // print camera
 	camDir = camFocus - camPos;
 	auto currCamUp  = cyPoint3f(camRotate.Matrix() * cyPoint4f((cyPoint3f)camUp, 0.0f));
@@ -95,15 +122,5 @@ inline void GetSpecialKeys(int key, GLint x, GLint y) {
 }
 
 inline void Idle() { glutPostRedisplay(); }
-
-inline void clean()
-{
-    gfb.Delete();
-    ospUnmapFrameBuffer(ofb, framebuffer);
-    ospRelease(world);
-    ospRelease(camera);
-    ospRelease(renderer);
-    ospRelease(framebuffer);
-}
 
 #endif//_CALLBACK_H_

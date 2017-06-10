@@ -18,9 +18,15 @@
 //
 #include <iostream>
 #include <string>
-#include <vector>
-#include <algorithm>
+#include <cmath>
+#include <ratio>
 #include <limits>
+#include <chrono> 
+#include <vector>     // c++11
+#include <algorithm>  // c++11
+#include <functional> // c++11
+#include <thread>
+#include <omp.h>
 
 #include <GL/glew.h>
 #ifdef APPLE // apple specific header

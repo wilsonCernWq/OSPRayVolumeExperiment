@@ -129,7 +129,7 @@ inline void mouse2screen
 }
 
 //! @name writePPM Helper function to write the rendered image as PPM file
-void writePPM
+inline void writePPM
 (const char *fileName, const ospcommon::vec2i &size, const uint32_t *pixel) 
 {
     using namespace ospcommon;
