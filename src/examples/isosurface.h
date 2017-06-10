@@ -1,13 +1,10 @@
 #pragma once
-#ifndef _GHOST_ZOOM_H_
-#define _GHOST_ZOOM_H_
+#ifndef _ISOSURFACE_H_
+#define _ISOSURFACE_H_
 
-#include "../common.h"
-#include "../helper.h"
-#include "../global.h"
-
-inline void test_ghost_zoom(int argc, const char **argv) 
+inline void test_isosurface(int argc, const char **argv)
 {
+    //! setup everything as ghost zoom test
     //! transfer function
     const std::vector<vec3f> colors = {
 	vec3f(0, 0, 0.563),
@@ -23,30 +20,41 @@ inline void test_ghost_zoom(int argc, const char **argv)
     SetupTF(colors, opacities);
 
     // ! create volume
-    const vec3i dims(11, 10, 10);
+    camZoom *= 10.0;
+    const vec3i dims(101, 100, 100);
     auto volumeDataA = new unsigned char[dims.x * dims.y * dims.z];
     auto volumeDataB = new unsigned char[dims.x * dims.y * dims.z];
+    float iso[10];
     cleanlist.push_back([=](){ 
 	    delete[] volumeDataA;
 	    delete[] volumeDataB;
 	});
-    for (int x = -9; x < 11; ++x) {
+    auto vt1 = std::chrono::system_clock::now();
+    for (int x = -99; x < 101; ++x) {
+	int v = round((x + 99) / 200.0 * 256.0);
+	if ((x+99) % 20 == 10) {
+	    iso[(x+99)/20] = (float)v;
+	}
     	for (int y = 0; y < dims.y; ++y) {
     	    for (int z = 0; z < dims.z; ++z) {
     		if (x <=1) {
-    		    int i = z * dims.y * dims.x + y * dims.x + (x + 9);
-    		    volumeDataB[i] = (x < 1 ? 0 : 255);
+    		    int i = z * dims.y * dims.x + y * dims.x + (x + 99);
+    		    volumeDataB[i] = v;
     		}
     		if (x >= 0) {
     		    int i = z * dims.y * dims.x + y * dims.x + x;
-    		    volumeDataA[i] = (x > 0 ? 255 : 0);
+    		    volumeDataA[i] = v;
     		}
     	    }
     	}
     }
+    auto vt2 = std::chrono::system_clock::now();
+    std::chrono::duration<double> vdur = vt2 - vt1;
+    std::cout << "finish initialization " << vdur.count() 
+	      << " seconds" << std::endl;
     auto t1 = std::chrono::system_clock::now();
     {
-    	OSPVolume volume = ospNewVolume("shared_structured_volume");
+    	OSPVolume volume = ospNewVolume("visit_shared_structured_volume");
     	OSPData voxelData = ospNewData(dims.x * dims.y * dims.z, 
 				       OSP_UCHAR, volumeDataA, 
 				       OSP_DATA_SHARED_BUFFER);
@@ -62,18 +70,25 @@ inline void test_ghost_zoom(int argc, const char **argv)
     	ospSetVec3f(volume, "volumeClippingBoxLower", 
 		    osp::vec3f{0.5f,(float)-dims.y/2.0f,(float)-dims.z/2.0f});
     	ospSetVec3f(volume, "volumeClippingBoxUpper", 
-		    osp::vec3f{10.0f,(float) dims.y/2.0f,(float) dims.z/2.0f});
-    	ospSet1f(volume, "samplingRate", 8.0f);
+		    osp::vec3f{100.0f,(float)dims.y/2.0f,(float) dims.z/2.0f});
+    	ospSet1f(volume, "samplingRate", 1.0f);
     	ospSet1i(volume, "preIntegration", 0);
-    	ospSet1i(volume, "adaptiveSampling", 0);
+    	ospSet1i(volume, "adaptiveSampling", 1);
     	ospSet1i(volume, "singleShade", 0);
     	ospSetObject(volume, "transferFunction", transferFcn);
     	ospSetData(volume, "voxelData", voxelData);
     	ospCommit(volume);
-    	ospAddVolume(world, volume);
+	// create isosurface	
+	OSPGeometry surf = ospNewGeometry("isosurfaces");
+    	OSPData values = ospNewData(10, OSP_FLOAT, iso);
+	ospCommit(values);
+	ospSetData(surf, "isovalues", values);
+	ospSetObject(surf, "volume", volume); 
+	ospCommit(surf);
+	ospAddGeometry(world, surf);	
     }
     {
-    	OSPVolume volume = ospNewVolume("shared_structured_volume");
+    	OSPVolume volume = ospNewVolume("visit_shared_structured_volume");
     	OSPData voxelData = ospNewData(dims.x * dims.y * dims.z, 
 				       OSP_UCHAR, volumeDataB, 
 				       OSP_DATA_SHARED_BUFFER);
@@ -84,24 +99,32 @@ inline void test_ghost_zoom(int argc, const char **argv)
     	ospSetString(volume, "voxelType", "uchar");
     	ospSetVec3i(volume, "dimensions", (osp::vec3i&)dims);
     	ospSetVec3f(volume, "gridOrigin", 
-		    osp::vec3f{-9.0f,(float)-dims.y/2.0f,(float)-dims.z/2.0f});
+		    osp::vec3f{-99.0f,(float)-dims.y/2.0f,(float)-dims.z/2.0f});
     	ospSetVec3f(volume, "gridSpacing", osp::vec3f{1.0f, 1.0f, 1.0f});
     	ospSetVec3f(volume, "volumeClippingBoxLower", 
-		    osp::vec3f{-9.0f,(float)-dims.y/2.0f,(float)-dims.z/2.0f});
+		    osp::vec3f{-99.0f,(float)-dims.y/2.0f,(float)-dims.z/2.0f});
     	ospSetVec3f(volume, "volumeClippingBoxUpper", 
-		    osp::vec3f{0.5f,(float)dims.y/2.0f,(float) dims.z/2.0f});
-    	ospSet1f(volume, "samplingRate", 8.0f);
+		    osp::vec3f{0.5f,(float) dims.y/2.0f,(float) dims.z/2.0f});
+    	ospSet1f(volume, "samplingRate", 1.0f);
     	ospSet1i(volume, "preIntegration", 0);
-    	ospSet1i(volume, "adaptiveSampling", 0);
+    	ospSet1i(volume, "adaptiveSampling", 1);
     	ospSet1i(volume, "singleShade", 0);
     	ospSetObject(volume, "transferFunction", transferFcn);
     	ospSetData(volume, "voxelData", voxelData);
     	ospCommit(volume);
-    	ospAddVolume(world, volume);
+	// create isosurface	
+	OSPGeometry surf = ospNewGeometry("isosurfaces");
+    	OSPData values = ospNewData(10, OSP_FLOAT, iso);
+	ospCommit(values);
+	ospSetData(surf, "isovalues", values);
+	ospSetObject(surf, "volume", volume); 
+	ospCommit(surf);
+	ospAddGeometry(world, surf);	
     }
     auto t2 = std::chrono::system_clock::now();
     std::chrono::duration<double> dur = t2 - t1;
-    std::cout << "finish commits " << dur.count() / 2.0 << " seconds" << std::endl;
+    std::cout << "finish commits " << dur.count() / 2.0 
+	      << " seconds" << std::endl;
 }
 
-#endif// _GHOST_ZOOM_H_
+#endif//_ISOSURFACE_H_
