@@ -4,6 +4,7 @@
 #include "callback.h"
 #include "examples/ghost_zoom.h"
 #include "examples/marco_cell.h"
+#include "examples/isosurface.h"
 
 void render()
 {
@@ -55,6 +56,9 @@ int main(int argc, const char **argv)
     }
     else if (teststr.compare("marco_cell") == 0) {
 	test_marco_cell(argc, argv);
+    }
+    else if (teststr.compare("isosurface") == 0) {
+	test_isosurface(argc, argv);
     }
     ospCommit(world);
 
