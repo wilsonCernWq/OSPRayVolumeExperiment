@@ -61,8 +61,8 @@ static void debug(const cy::Matrix##n##t& m) {   	     \
     std::cout << std::endl;				     \
 }
 #else
-# define DEBUG_VECTOR (n, t) static void debug(const cy::Point##n##t& m) {}
-# define DEBUG_MATRIX (n, t) static void debug(const cy::Matrix##n##t& m) {}
+# define DEBUG_VECTOR(n, t) static void debug(const cy::Point##n##t& m) {}
+# define DEBUG_MATRIX(n, t) static void debug(const cy::Matrix##n##t& m) {}
 #endif                                                     
 
 namespace cy {

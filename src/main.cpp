@@ -43,7 +43,8 @@ int main(int argc, const char **argv)
 
     //! create world and renderer
     world = ospNewModel();
-    renderer = ospNewRenderer("scivis"); // possible options: "pathtracer" "raytracer"
+    //! possible options: "pathtracer" "raytracer"
+    renderer = ospNewRenderer("scivis"); 
 
     //! setup volume/geometry
     if (argc < 2) {
@@ -71,12 +72,16 @@ int main(int argc, const char **argv)
 
     //! lighting
     OSPLight ambient_light = ospNewLight(renderer, "AmbientLight");
+    ospSet1f(ambient_light, "intensity", 0.0f);
     ospCommit(ambient_light);
     OSPLight directional_light = ospNewLight(renderer, "DirectionalLight");
-    ospSetVec3f(directional_light, "direction", osp::vec3f{0.0f, 1.0f, 0.0f});
+    ospSet1f(directional_light, "intensity", 2.0f);
+    ospSetVec3f(directional_light, "direction", 
+		osp::vec3f{20.0f, 20.0f, 20.0f});
     ospCommit(directional_light);
     std::vector<OSPLight> light_list { ambient_light, directional_light };
-    OSPData lights = ospNewData(light_list.size(), OSP_OBJECT, light_list.data());
+    OSPData lights = 
+	ospNewData(light_list.size(), OSP_OBJECT, light_list.data());
     ospCommit(lights);
 
     //! renderer
@@ -84,6 +89,8 @@ int main(int argc, const char **argv)
     ospSetData(renderer, "lights", lights);
     ospSetObject(renderer, "model", world);
     ospSetObject(renderer, "camera", camera);
+    ospSet1i(renderer, "shadowEnabled", 0);
+    ospSet1i(renderer, "oneSidedLighting", 0);
     ospCommit(renderer);
 
     //! render to buffer
