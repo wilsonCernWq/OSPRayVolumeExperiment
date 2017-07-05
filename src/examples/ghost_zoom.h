@@ -21,7 +21,7 @@ inline void test_ghost_zoom(int argc, const char **argv)
 	vec3f(0.5, 0, 0)
     };
     const std::vector<float> opacities = 
-	{ 0.01f, 0.9f, 0.1f, 0.5f, 0.5f, 0.5f };
+	{ 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f };
     SetupTF(colors, opacities);
 
     // ! create volume
@@ -35,11 +35,11 @@ inline void test_ghost_zoom(int argc, const char **argv)
     for (int x = -9; x < 11; ++x) {
     	for (int y = 0; y < dims.y; ++y) {
     	    for (int z = 0; z < dims.z; ++z) {
-    		if (x <=1) {
+    		if (x <= 1) { // x = -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1
     		    int i = z * dims.y * dims.x + y * dims.x + (x + 9);
     		    volumeDataB[i] = (x < 1 ? (x+9)/9.0*60 : 196);
     		}
-    		if (x >= 0) {
+    		if (x >= 0) { // x = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
     		    int i = z * dims.y * dims.x + y * dims.x + x;
     		    volumeDataA[i] = (x > 0 ? (x-1)/9.0*60+195 : 60);
     		}
