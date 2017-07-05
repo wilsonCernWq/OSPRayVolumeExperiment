@@ -39,7 +39,7 @@ void render()
 int main(int argc, const char **argv)
 {
     ospInit(&argc, argv);    
-    ospLoadModule("visit");
+    //ospLoadModule("visit");
 
     //! create world and renderer
     world = ospNewModel();

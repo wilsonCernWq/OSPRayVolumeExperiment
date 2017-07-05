@@ -12,7 +12,7 @@
 //
 #include "ospray/ospray.h"
 #include "ospray/ospcommon/vec.h"
-#include "ospray/VisItModuleCommon.h"
+//#include "ospray/VisItModuleCommon.h"
 
 //
 // include cpp standard library
