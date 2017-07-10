@@ -35,17 +35,23 @@ inline void test_ghost_zoom(int argc, const char **argv)
     const int xA = -1;
     const int xB = -9;
     for (int x = -9; x < 11; ++x) {
+	int c;
+	/* if (x <= 0)  */
+	/*     c = (x + 9)/9.0 * 60; */
+	/* else if (x >=1) */
+	/*     c = (x - 1)/9.0 * 60 + 195; */
+	/* else */
+	/*     c = x/2.0 * 135 + 60; */
+	c = (x + 9)/19.0 * 255;
     	for (int y = 0; y < dims.y; ++y) {
-    	    for (int z = 0; z < dims.z; ++z) {		
-		int iB = (x - xB);
-		int iA = (x - xA);
+    	    for (int z = 0; z < dims.z; ++z) {						
     		if (x <= 2) { // x = -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2
-		    int i = z * dims.y * dims.x + y * dims.x + iB;
-    		    volumeDataB[i] = (x < 1 ? iB/10.0*60 : iA/10.0*60+195);
+		    int i = z * dims.y * dims.x + y * dims.x + x + 9;
+    		    volumeDataB[i] = c;
     		}
     		if (x >= -1) { // x = -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-		    int i = z * dims.y * dims.x + y * dims.x + iA;
-    		    volumeDataA[i] = (x > 0 ? iA/10.0*60+195 : iB/10.0*60);
+		    int i = z * dims.y * dims.x + y * dims.x + x + 1;
+    		    volumeDataA[i] = c;
     		}
     	    }
     	}
@@ -74,7 +80,7 @@ inline void test_ghost_zoom(int argc, const char **argv)
     	ospSet1f(volume, "samplingRate", 8.0f);
     	ospSet1i(volume, "preIntegration", 0);
     	ospSet1i(volume, "adaptiveSampling", 0);
-    	ospSet1i(volume, "singleShade", 0);
+    	ospSet1i(volume, "singleShade", 1);
     	ospSetObject(volume, "transferFunction", transferFcn);
     	ospSetData(volume, "voxelData", voxelData);
 	ospSet1i(volume, "gradientShadingEnabled", gradRendering);
@@ -104,7 +110,7 @@ inline void test_ghost_zoom(int argc, const char **argv)
     	ospSet1f(volume, "samplingRate", 8.0f);
     	ospSet1i(volume, "preIntegration", 0);
     	ospSet1i(volume, "adaptiveSampling", 0);
-    	ospSet1i(volume, "singleShade", 0);
+    	ospSet1i(volume, "singleShade", 1);
     	ospSetObject(volume, "transferFunction", transferFcn);
     	ospSetData(volume, "voxelData", voxelData);
     	ospSet1i(volume, "gradientShadingEnabled", gradRendering);
