@@ -39,11 +39,13 @@ void render()
 int main(int argc, const char **argv)
 {
     ospInit(&argc, argv);    
-    //ospLoadModule("visit");
+
+#ifdef USE_VISITOSPRAY
+    ospLoadModule("visit");
+#endif
 
     //! create world and renderer
     world = ospNewModel();
-    //! possible options: "pathtracer" "raytracer"
     renderer = ospNewRenderer("scivis"); 
 
     //! setup volume/geometry
