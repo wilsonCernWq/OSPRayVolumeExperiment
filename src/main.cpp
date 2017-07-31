@@ -5,6 +5,7 @@
 #include "examples/ghost_zoom.h"
 #include "examples/marco_cell.h"
 #include "examples/isosurface.h"
+#include "examples/instance_volume.h"
 
 void render()
 {
@@ -62,6 +63,9 @@ int main(int argc, const char **argv)
     }
     else if (teststr.compare("isosurface") == 0) {
 	test_isosurface(argc, argv);
+    }
+    else if (teststr.compare("instance_volume") == 0) {
+	test_instance_volume(argc, argv);
     }
     ospCommit(world);
 

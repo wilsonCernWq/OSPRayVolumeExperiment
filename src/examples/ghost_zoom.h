@@ -5,6 +5,7 @@
 #include "../common.h"
 #include "../helper.h"
 #include "../global.h"
+#include <cmath>
 
 inline void test_ghost_zoom(int argc, const char **argv) 
 {
@@ -42,14 +43,16 @@ inline void test_ghost_zoom(int argc, const char **argv)
 	/*     c = (x - 1)/9.0 * 60 + 195; */
 	/* else */
 	/*     c = x/2.0 * 135 + 60; */
-	c = (x + 9)/19.0 * 255;
+	// c = (x + 9)/19.0 * 255.0;
+	c = ::sin((x + 9)/19.0 * M_PI / 2.0) * 255.0;
+	std::cout << "x = " << x << " v = " << c << std::endl;
     	for (int y = 0; y < dims.y; ++y) {
-    	    for (int z = 0; z < dims.z; ++z) {						
+    	    for (int z = 0; z < dims.z; ++z) {		
     		if (x <= 2) { // x = -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2
 		    int i = z * dims.y * dims.x + y * dims.x + x + 9;
     		    volumeDataB[i] = c;
     		}
-    		if (x >= -1) { // x = -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+    		if (x >=-1) { // x = -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 		    int i = z * dims.y * dims.x + y * dims.x + x + 1;
     		    volumeDataA[i] = c;
     		}
@@ -77,14 +80,14 @@ inline void test_ghost_zoom(int argc, const char **argv)
 		    osp::vec3f
 		    {(float)xA,(float)-dims.y/2.0f,(float)-dims.z/2.0f});
     	ospSetVec3f(volume, "gridSpacing", osp::vec3f{1.0f, 1.0f, 1.0f});
-    	ospSetVec3f(volume, "volumeClippingBoxLower", 
+    	ospSetVec3f(volume, "volumeClippingBoxLower",
 		    osp::vec3f{0.5f,(float)-dims.y/2.0f,(float)-dims.z/2.0f});
-    	ospSetVec3f(volume, "volumeClippingBoxUpper", 
+    	ospSetVec3f(volume, "volumeClippingBoxUpper",
 		    osp::vec3f{10.0f,(float) dims.y/2.0f,(float) dims.z/2.0f});
     	ospSet1f(volume, "samplingRate", 8.0f);
     	ospSet1i(volume, "preIntegration", 0);
     	ospSet1i(volume, "adaptiveSampling", 0);
-    	ospSet1i(volume, "singleShade", 1);
+    	ospSet1i(volume, "singleShade", 0);
     	ospSetObject(volume, "transferFunction", transferFcn);
     	ospSetData(volume, "voxelData", voxelData);
 	ospSet1i(volume, "gradientShadingEnabled", gradRendering);
@@ -118,7 +121,7 @@ inline void test_ghost_zoom(int argc, const char **argv)
     	ospSet1f(volume, "samplingRate", 8.0f);
     	ospSet1i(volume, "preIntegration", 0);
     	ospSet1i(volume, "adaptiveSampling", 0);
-    	ospSet1i(volume, "singleShade", 1);
+    	ospSet1i(volume, "singleShade", 0);
     	ospSetObject(volume, "transferFunction", transferFcn);
     	ospSetData(volume, "voxelData", voxelData);
     	ospSet1i(volume, "gradientShadingEnabled", gradRendering);
