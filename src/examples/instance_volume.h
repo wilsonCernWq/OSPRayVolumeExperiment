@@ -58,6 +58,7 @@ inline void test_instance_volume(int argc, const char **argv)
 		ospRelease(voxelData);
 	    });
     	ospSetString(volume, "voxelType", "uchar");
+	ospSetData(volume, "voxelData", voxelData);
     	ospSetVec3i(volume, "dimensions", (osp::vec3i&)volumeDims);
     	ospSetVec3f(volume, "gridOrigin", 
 		    osp::vec3f{-(float)volumeDims.x/2.f, 
@@ -69,22 +70,13 @@ inline void test_instance_volume(int argc, const char **argv)
     	ospSet1i(volume, "adaptiveSampling", 1);
     	ospSet1i(volume, "singleShade", 0);
     	ospSetObject(volume, "transferFunction", transferFcn);
-	ospSetData(volume, "voxelData", voxelData);
-    	ospCommit(volume);	
+	ospSetVec3f(volume, "xfm.l.vx", osp::vec3f{4.0f, 1.0f, 0.0f});
+	ospSetVec3f(volume, "xfm.l.vy", osp::vec3f{-1.0f, 2.0f, 0.0f});
+	ospSetVec3f(volume, "xfm.l.vz", osp::vec3f{0.0f, 0.0f, 1.0f});
+	ospSetVec3f(volume, "xfm.p",    osp::vec3f{0.0f, 0.0f, 0.0f});
+    	ospCommit(volume);
 	
-	OSPModel localWorld = ospNewModel();
-	ospAddVolume(localWorld, volume);
-	ospCommit(localWorld);
-	ospRelease(volume);
-
-	OSPVolume instanceVolume = ospNewVolume("instance_volume");
-	ospSetObject(instanceVolume, "model", localWorld);
-	ospSetVec3f(instanceVolume, "xfm.l.vx", osp::vec3f{5.0f, 0.0f, 0.0f});
-	ospSetVec3f(instanceVolume, "xfm.l.vy", osp::vec3f{0.0f, 1.0f, 0.0f});
-	ospSetVec3f(instanceVolume, "xfm.l.vz", osp::vec3f{0.0f, 0.0f, 1.0f});
-	ospSetVec3f(instanceVolume, "xfm.p",    osp::vec3f{0.0f, 0.0f, 0.0f});
-	ospCommit(instanceVolume);
-    	ospAddVolume(world, instanceVolume);
+    	ospAddVolume(world, volume);
     }
     auto t2 = std::chrono::system_clock::now();
     std::chrono::duration<double> dur = t2 - t1;
