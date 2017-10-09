@@ -13,7 +13,7 @@
 class Trackball {
 private:
     float     radius = 1.0f;
-    GLboolean inverse_mode = false;
+    GLboolean inverse_mode = true;
     cy::Matrix4f matrix = cy::Matrix4f::MatrixIdentity();
     cy::Matrix4f matrix_prev = cy::Matrix4f::MatrixIdentity();
     cy::Point3f  position;
@@ -51,10 +51,15 @@ public:
 	// get direction
 	position = proj2surf(x, y);
 	cy::Point3f dir = (position_prev.Cross(position)).GetNormalized();
-	dir = inverse_mode ? -dir : dir;
+	float tx = dir.x, ty = dir.y, tz = dir.z;
+	dir.z = -tx; dir.y = ty; dir.x = tz;
+	dir = inverse_mode ? -dir : dir;	
 	// compute rotation angle
-	float angle = position_prev.Dot(position) / position_prev.Length() / position.Length();
-	if (angle > 0.99999999999) { // to prevent position_prev == position, this will cause invalid value
+	float angle =
+	    position_prev.Dot(position) / position_prev.Length() / position.Length();
+	if (angle > 0.99999999999) {
+	    // to prevent position_prev == position
+	    // this will cause invalid value
 	    return;
 	}
 	else { // compute rotation

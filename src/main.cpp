@@ -42,7 +42,10 @@ int main(int argc, const char **argv)
     ospInit(&argc, argv);    
 
 #ifdef USE_VISITOSPRAY
-    ospLoadModule("visit");
+    OSPError err = ospLoadModule("visit");
+    if (err != OSP_NO_ERROR) {
+      std::cerr << "[Error] can't load visit module" << std::endl;
+    }
 #endif
 
     //! create world and renderer

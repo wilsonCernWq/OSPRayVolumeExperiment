@@ -45,10 +45,10 @@ inline void test_marco_cell(int argc, const char **argv)
     //#pragma omp parallel for
     for (size_t i = 0; i < dim * dim * dim; ++i) {
        volumeDataA[i] = 
-	   (unsigned char) floor
+	 (unsigned char) std::floor
 	   (((int)(((float)i/dim) * 256) % 256) / 2.0f); 
        volumeDataB[i] = 
-	   (unsigned char) ceil 
+	 (unsigned char) std::ceil 
 	   (((int)(((float)i/dim) * 256) % 256) / 2.0f) + 128; 
     }
     auto vt2 = std::chrono::system_clock::now();

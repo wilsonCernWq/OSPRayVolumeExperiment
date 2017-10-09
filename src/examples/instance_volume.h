@@ -37,7 +37,7 @@ inline void test_instance_volume(int argc, const char **argv)
 	    delete[] volumeData;
 	});
     for (size_t i = 0; i < dim * dim * dim; ++i) {
-       volumeData[i] = (unsigned char)floor(((float)i/dim) * 256); 
+      volumeData[i] = (unsigned char)std::floor(((float)i/dim) * 256); 
     }
     auto vt2 = std::chrono::system_clock::now();
     std::chrono::duration<double> vdur = vt2 - vt1;

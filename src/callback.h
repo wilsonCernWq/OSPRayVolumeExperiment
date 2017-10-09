@@ -57,7 +57,7 @@ inline void SetupTF(const std::vector<vec3f>& colors, const std::vector<float>& 
 inline void UpdateCamera(bool cleanbuffer = true)
 {
     camDir = camFocus - camPos;
-    auto currCamUp = cyPoint3f(camRotate.Matrix() * cyPoint4f((cyPoint3f)camUp, 0.0f));
+    auto currCamUp  = cyPoint3f(camRotate.Matrix() * cyPoint4f((cyPoint3f)camUp,  0.0f));
     auto currCamDir = cyPoint3f(camRotate.Matrix() * cyPoint4f((cyPoint3f)camDir, 0.0f));
     auto currCamPos = (cyPoint3f)camFocus - currCamDir * camZoom;
     ospSetVec3f(camera, "pos", (osp::vec3f&)currCamPos);
