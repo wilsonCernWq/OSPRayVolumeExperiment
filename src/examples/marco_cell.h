@@ -29,9 +29,13 @@ inline void test_marco_cell(int argc, const char **argv)
     SetupTF(colors, opacities);
 
     // testing marco cell
+#ifdef USE_VISITOSPRAY      
     std::string volumetype = std::stoi(argv[3]) == 1 ? 
 	"visit_shared_structured_volume" : 
 	"shared_structured_volume";
+#else
+    std::string volumetype = "shared_structured_volume";
+#endif
     const int dim = std::stoi(argv[2]); camZoom *= dim / 5;    
     auto vt1 = std::chrono::system_clock::now();
     // false sharing problem causes openMP performs badly on heap array

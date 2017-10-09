@@ -47,7 +47,11 @@ inline void test_instance_volume(int argc, const char **argv)
     const vec3i volumeDims(dim, dim, dim);
     auto t1 = std::chrono::system_clock::now();
     {
+#ifdef USE_VISITOSPRAY
     	OSPVolume volume = ospNewVolume("visit_shared_structured_volume");
+#else
+	OSPVolume volume = ospNewVolume("shared_structured_volume");
+#endif
     	OSPData voxelData = ospNewData(volumeDims.x * 
 				       volumeDims.y * 
 				       volumeDims.z, 

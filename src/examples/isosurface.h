@@ -54,7 +54,11 @@ inline void test_isosurface(int argc, const char **argv)
 	      << " seconds" << std::endl;
     auto t1 = std::chrono::system_clock::now();
     {
+#ifdef USE_VISITOSPRAY      
     	OSPVolume volume = ospNewVolume("visit_shared_structured_volume");
+#else
+	OSPVolume volume = ospNewVolume("shared_structured_volume");
+#endif       
     	OSPData voxelData = ospNewData(dims.x * dims.y * dims.z, 
 				       OSP_UCHAR, volumeDataA, 
 				       OSP_DATA_SHARED_BUFFER);
@@ -88,7 +92,11 @@ inline void test_isosurface(int argc, const char **argv)
 	ospAddGeometry(world, surf);	
     }
     {
+#ifdef USE_VISITOSPRAY      
     	OSPVolume volume = ospNewVolume("visit_shared_structured_volume");
+#else
+	OSPVolume volume = ospNewVolume("shared_structured_volume");
+#endif       
     	OSPData voxelData = ospNewData(dims.x * dims.y * dims.z, 
 				       OSP_UCHAR, volumeDataB, 
 				       OSP_DATA_SHARED_BUFFER);
