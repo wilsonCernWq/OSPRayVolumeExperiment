@@ -13,7 +13,7 @@
 #include "ospray/ospray.h"
 #include "ospray/ospcommon/vec.h"
 #ifdef USE_VISITOSPRAY
-# include "ospray/VisItModuleCommon.h"
+# include "ospray/visit/VisItModuleCommon.h"
 #endif
 
 //

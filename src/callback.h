@@ -39,21 +39,6 @@ inline void Clean()
     for (auto& c : cleanlist) { c(); }
 }
 
-inline void SetupTF(const std::vector<vec3f>& colors, const std::vector<float>& opacities)
-{
-    //! setup trasnfer function
-    transferFcn = ospNewTransferFunction("piecewise_linear");
-    OSPData colorsData = ospNewData(colors.size(), OSP_FLOAT3, colors.data());
-    ospCommit(colorsData);
-    OSPData opacityData = ospNewData(opacities.size(), OSP_FLOAT, opacities.data());
-    ospCommit(opacityData);
-    const vec2f valueRange(static_cast<float>(0), static_cast<float>(255));
-    ospSetData(transferFcn, "colors", colorsData);
-    ospSetData(transferFcn, "opacities", opacityData);
-    ospSetVec2f(transferFcn, "valueRange", (osp::vec2f&)valueRange);
-    ospCommit(transferFcn);
-}
-
 inline void UpdateCamera(bool cleanbuffer = true)
 {
     camDir = camFocus - camPos;
@@ -122,5 +107,35 @@ inline void GetSpecialKeys(int key, GLint x, GLint y) {
 }
 
 inline void Idle() { glutPostRedisplay(); }
+
+void render()
+{
+    static int framecount = 0;
+    static const int stepcount = 10;
+    static std::chrono::system_clock::time_point 
+	t1 = std::chrono::system_clock::now(), 
+	t2 = std::chrono::system_clock::now();
+    if (framecount % stepcount == 0) {
+	t2 = std::chrono::system_clock::now();
+	std::chrono::duration<double> dur = t2 - t1;
+	if (framecount > 0) {
+	    glutSetWindowTitle
+		(std::to_string((double)stepcount / dur.count()).c_str());
+	}
+	t1 = std::chrono::system_clock::now();	
+    }
+    ++framecount;
+    if (framebuffer != nullptr) {
+	ospRenderFrame(framebuffer, renderer, OSP_FB_COLOR | OSP_FB_ACCUM);
+	gfb.BindTexture();
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, WINSIZE.x, WINSIZE.y, 
+			GL_RGBA, GL_UNSIGNED_BYTE, ofb);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, gfb.GetID());
+	glBlitFramebuffer(0, 0, WINSIZE.x, WINSIZE.y, 
+			  0, 0, WINSIZE.x, WINSIZE.y,
+			  GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	glutSwapBuffers();
+    }
+}
 
 #endif//_CALLBACK_H_
