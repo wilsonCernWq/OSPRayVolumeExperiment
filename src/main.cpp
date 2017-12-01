@@ -4,7 +4,8 @@
 #include "callback.h"
 
 void SetupTF(const std::vector<vec3f>& colors, 
-	     const std::vector<float>& opacities)
+	     const std::vector<float>& opacities, 
+	     int colorW, int colorH, int opacityW, int opacityH)
 {
   //! setup trasnfer function
   transferFcn = ospNewTransferFunction("piecewise_linear_2d");
@@ -20,6 +21,10 @@ void SetupTF(const std::vector<vec3f>& colors,
   ospSetData(transferFcn, "colors", colorsData);
   ospSetData(transferFcn, "opacities", opacityData);
   ospSetVec2f(transferFcn, "valueRange", (osp::vec2f&)valueRange);
+  ospSet1i(transferFcn, "colorWidth",  colorW);
+  ospSet1i(transferFcn, "colorHeight", colorH);
+  ospSet1i(transferFcn, "opacityWidth",  opacityW);
+  ospSet1i(transferFcn, "opacityHeight", opacityH);
   ospCommit(transferFcn);
 }
 
@@ -35,11 +40,11 @@ void volume(int argc, const char **argv)
     vec3f(0.5, 1, 0.5),
     vec3f(1, 1, 0),
     vec3f(1, 0, 0),
-    vec3f(0.5, 0, 0)
+    vec3f(0.5, 0, 0),
   };
   const std::vector<float> opacities = 
     { 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f };
-  SetupTF(colors, opacities);
+  SetupTF(colors, opacities, 7, 1, 6, 1);
 
   // ! create volume
   const vec3i dims(12, 10, 10);
@@ -101,38 +106,38 @@ void volume(int argc, const char **argv)
     ospCommit(volume);
     ospAddVolume(world, volume);
   }
-  {
-    //OSPVolume volume = ospNewVolume("visit_shared_structured_volume");
-    //OSPVolume volume = ospNewVolume("shared_structured_volume");
-    OSPVolume volume = ospNewVolume("shared_structured_volume");
-    OSPData voxelData = ospNewData(dims.x * dims.y * dims.z,
-				   OSP_UCHAR, volumeDataB,
-				   OSP_DATA_SHARED_BUFFER);
-    cleanlist.push_back([=](){ // cleaning function
-	ospRelease(volume);
-	ospRelease(voxelData);
-      });
-    ospSet1i(volume, "useGridAccelerator", useGridAccelerator);
-    ospSetString(volume, "voxelType", "uchar");
-    ospSetVec3i(volume, "dimensions", (osp::vec3i&)dims);
-    ospSetVec3f(volume, "gridOrigin",
-		osp::vec3f
-		{(float)xB,(float)-dims.y/2.0f,(float)-dims.z/2.0f});
-    ospSetVec3f(volume, "gridSpacing", osp::vec3f{1.0f, 1.0f, 1.0f});
-    ospSetVec3f(volume, "volumeClippingBoxLower",
-		osp::vec3f{-9.0f,(float)-dims.y/2.0f,(float)-dims.z/2.0f});
-    ospSetVec3f(volume, "volumeClippingBoxUpper",
-		osp::vec3f{0.5f,(float)dims.y/2.0f,(float) dims.z/2.0f});
-    ospSet1f(volume, "samplingRate", 8.0f);
-    ospSet1i(volume, "preIntegration", 0);
-    ospSet1i(volume, "adaptiveSampling", 0);
-    ospSet1i(volume, "singleShade", 0);
-    ospSetObject(volume, "transferFunction", transferFcn);
-    ospSetData(volume, "voxelData", voxelData);
-    ospSet1i(volume, "gradientShadingEnabled", gradRendering);
-    ospCommit(volume);
-    ospAddVolume(world, volume);
-  }
+  // {
+  //   //OSPVolume volume = ospNewVolume("visit_shared_structured_volume");
+  //   //OSPVolume volume = ospNewVolume("shared_structured_volume");
+  //   OSPVolume volume = ospNewVolume("shared_structured_volume");
+  //   OSPData voxelData = ospNewData(dims.x * dims.y * dims.z,
+  // 				   OSP_UCHAR, volumeDataB,
+  // 				   OSP_DATA_SHARED_BUFFER);
+  //   cleanlist.push_back([=](){ // cleaning function
+  // 	ospRelease(volume);
+  // 	ospRelease(voxelData);
+  //     });
+  //   ospSet1i(volume, "useGridAccelerator", useGridAccelerator);
+  //   ospSetString(volume, "voxelType", "uchar");
+  //   ospSetVec3i(volume, "dimensions", (osp::vec3i&)dims);
+  //   ospSetVec3f(volume, "gridOrigin",
+  // 		osp::vec3f
+  // 		{(float)xB,(float)-dims.y/2.0f,(float)-dims.z/2.0f});
+  //   ospSetVec3f(volume, "gridSpacing", osp::vec3f{1.0f, 1.0f, 1.0f});
+  //   ospSetVec3f(volume, "volumeClippingBoxLower",
+  // 		osp::vec3f{-9.0f,(float)-dims.y/2.0f,(float)-dims.z/2.0f});
+  //   ospSetVec3f(volume, "volumeClippingBoxUpper",
+  // 		osp::vec3f{0.5f,(float)dims.y/2.0f,(float) dims.z/2.0f});
+  //   ospSet1f(volume, "samplingRate", 8.0f);
+  //   ospSet1i(volume, "preIntegration", 0);
+  //   ospSet1i(volume, "adaptiveSampling", 0);
+  //   ospSet1i(volume, "singleShade", 0);
+  //   ospSetObject(volume, "transferFunction", transferFcn);
+  //   ospSetData(volume, "voxelData", voxelData);
+  //   ospSet1i(volume, "gradientShadingEnabled", gradRendering);
+  //   ospCommit(volume);
+  //   ospAddVolume(world, volume);
+  // }
   auto t2 = std::chrono::system_clock::now();
   std::chrono::duration<double> dur = t2 - t1;
   std::cout << "finish commits " << dur.count() / 2.0 << " seconds" << std::endl;
