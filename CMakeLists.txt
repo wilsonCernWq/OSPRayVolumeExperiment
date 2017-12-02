@@ -19,27 +19,17 @@ endif()
 # load required libraries
 include(cmake/common.cmake)
 #
-# add openMP
-#
-find_package(OpenMP)
-if (OPENMP_FOUND)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif()
-message(STATUS "CMAKE_C_FLAGS " ${CMAKE_C_FLAGS})
-message(STATUS "CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS})
-#
-# install dlls or shader
-file(GLOB_RECURSE SHADERS "src/*.glsl")
-set(COPYLIST ${COMMON_DLLS} ${SHADERS})
-if(EXECUTABLE_OUTPUT_PATH)
-  DeployRepo("${COPYLIST}" "${EXECUTABLE_OUTPUT_PATH}")
-else()
-  DeployRepo("${COPYLIST}" "${CMAKE_BINARY_DIR}")
-endif()
+# load OSPRay
+FIND_PACKAGE(ospray REQUIRED)
+INCLUDE_DIRECTORIES(${OSPRAY_INCLUDE_DIRS})
+LIST(APPEND COMMON_LIBS ${OSPRAY_LIBRARIES})
+MESSAGE(STATUS "OSPRAY_LIBRARIES ${OSPRAY_LIBRARIES}")
 #
 # include sources
 file(GLOB_RECURSE CXX "src/*.cpp")
 file(GLOB_RECURSE HXX "src/*.h")
-add_executable(VolumeDisplay ${CXX} ${HXX} ${SHADERS})
+add_executable(VolumeDisplay ${CXX} ${HXX})
 target_link_libraries(VolumeDisplay ${COMMON_LIBS})
+set_target_properties(VolumeDisplay
+  PROPERTIES
+  CXX_STANDARD 11)

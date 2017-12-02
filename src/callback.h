@@ -6,136 +6,115 @@
 #define _CALLBACK_H_
 
 #include "common.h"
-#include "helper.h"
 #include "global.h"
+
+#include <imgui.h>
+#include <imgui_impl_glfw_gl3.h>
 
 //! functions
 inline void Clean()
 {
-    std::cout << "cleaning" << std::endl;
-    if (framebuffer != nullptr) {
-	gfb.Delete();
-	ospUnmapFrameBuffer(ofb, framebuffer);       
-	ospFreeFrameBuffer(framebuffer);
-	framebuffer = nullptr;
-    }
-    if (world != nullptr) { 
-	ospRelease(world); 
-	world = nullptr;
-    }
-    if (camera != nullptr) { 
-	ospRelease(camera); 
-	camera = nullptr;
-    }
-    if (renderer != nullptr) {
-	ospRelease(renderer);
- 	renderer = nullptr;
-    }
-    if (transferFcn != nullptr) {
-	ospRelease(transferFcn);
-	transferFcn = nullptr;
-    }
-    std::cout << "cleaning other stuffs" << std::endl;
-    for (auto& c : cleanlist) { c(); }
+  std::cout << "cleaning" << std::endl;
+  camera.Clean();
+  framebuffer.Clean();
+  if (world != nullptr) { 
+    ospRelease(world); 
+    world = nullptr;
+  }
+  if (renderer != nullptr) {
+    ospRelease(renderer);
+    renderer = nullptr;
+  }
+  if (transferFcn != nullptr) {
+    ospRelease(transferFcn);
+    transferFcn = nullptr;
+  }
+  std::cout << "cleaning other stuffs" << std::endl;
+  for (auto& c : cleanlist) { c(); }
 }
 
-inline void UpdateCamera(bool cleanbuffer = true)
+inline void render()
+{  
+  ospRenderFrame(framebuffer.OSPRayPtr(), renderer, OSP_FB_COLOR | OSP_FB_ACCUM);
+  framebuffer.Upload();
+}
+
+inline void error_callback(int error, const char* description)
 {
-    camDir = camFocus - camPos;
-    auto currCamUp  = cyPoint3f(camRotate.Matrix() * cyPoint4f((cyPoint3f)camUp,  0.0f));
-    auto currCamDir = cyPoint3f(camRotate.Matrix() * cyPoint4f((cyPoint3f)camDir, 0.0f));
-    auto currCamPos = (cyPoint3f)camFocus - currCamDir * camZoom;
-    ospSetVec3f(camera, "pos", (osp::vec3f&)currCamPos);
-    ospSetVec3f(camera, "dir", (osp::vec3f&)currCamDir);
-    ospSetVec3f(camera, "up",  (osp::vec3f&)currCamUp);
-    ospCommit(camera);
-    if (cleanbuffer) {
-	ospFrameBufferClear(framebuffer, OSP_FB_COLOR | OSP_FB_ACCUM);
-    }
+  fprintf(stderr, "Error: %s\n", description);
 }
 
-inline void GetMouseButton(GLint button, GLint state, GLint x, GLint y) {
-    static cy::Point2f p;
-    mouse2screen(x, y, WINSIZE.x, WINSIZE.y, p);
-    camRotate.BeginDrag(p[0], p[1]);
-}
-
-inline void GetMousePosition(GLint x, GLint y) {
-    static cy::Point2f p;
-    mouse2screen(x, y, WINSIZE.x, WINSIZE.y, p);
-    camRotate.Drag(p[0], p[1]);
-    UpdateCamera();
-}
-
-inline void GetNormalKeys(unsigned char key, GLint x, GLint y) {
-    if (key == 27) { 
-	Clean();
-	glutLeaveMainLoop(); 
-    }
-    if (key == 'p') { // print camera
-	camDir = camFocus - camPos;
-	auto currCamUp  = cyPoint3f(camRotate.Matrix() * cyPoint4f((cyPoint3f)camUp, 0.0f));
-	auto currCamDir = cyPoint3f(camRotate.Matrix() * cyPoint4f((cyPoint3f)camDir, 0.0f));
-	auto currCamPos = (cyPoint3f)camFocus - currCamDir * camZoom;
-	std::cout << "camup  " 
-		  << currCamUp.x << ", "
-		  << currCamUp.y << ", "
-		  << currCamUp.z << std::endl
-		  << "camdir " 
-		  << currCamDir.x << ", " 
-		  << currCamDir.y << ", " 
-		  << currCamDir.z << std::endl
-		  << "campos " 
-		  << currCamPos.x << ", "
-		  << currCamPos.y << ", "
-		  << currCamPos.z << std::endl;
-    }
-    if (key == 's') { // save screen shot	
-	writePPM("screenshot.ppm", WINSIZE, ofb);
-    }
-}
-
-inline void GetSpecialKeys(int key, GLint x, GLint y) {
-    if (key == GLUT_KEY_UP) { 
-	camZoom-=0.01f;
-	UpdateCamera();
-    }
-    if (key == GLUT_KEY_DOWN) {
-	camZoom+=0.01f;
-	UpdateCamera();
-    }
-}
-
-inline void Idle() { glutPostRedisplay(); }
-
-void render()
+inline void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    static int framecount = 0;
-    static const int stepcount = 10;
-    static std::chrono::system_clock::time_point 
-	t1 = std::chrono::system_clock::now(), 
-	t2 = std::chrono::system_clock::now();
-    if (framecount % stepcount == 0) {
-	t2 = std::chrono::system_clock::now();
-	std::chrono::duration<double> dur = t2 - t1;
-	if (framecount > 0) {
-	    glutSetWindowTitle
-		(std::to_string((double)stepcount / dur.count()).c_str());
-	}
-	t1 = std::chrono::system_clock::now();	
-    }
-    ++framecount;
-    if (framebuffer != nullptr) {
-	ospRenderFrame(framebuffer, renderer, OSP_FB_COLOR | OSP_FB_ACCUM);
-	gfb.BindTexture();
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, WINSIZE.x, WINSIZE.y, 
-			GL_RGBA, GL_UNSIGNED_BYTE, ofb);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, gfb.GetID());
-	glBlitFramebuffer(0, 0, WINSIZE.x, WINSIZE.y, 
-			  0, 0, WINSIZE.x, WINSIZE.y,
-			  GL_COLOR_BUFFER_BIT, GL_NEAREST);
-	glutSwapBuffers();
-    }
+  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+  { glfwSetWindowShouldClose(window, GLFW_TRUE); }
+}
+
+inline void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
+{
+  //if (!CapturedByGUI())
+  {
+    int left_state  = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+    int right_state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
+    if (left_state == GLFW_PRESS) { camera.CameraDrag(xpos, ypos); }
+    else { camera.CameraBeginDrag(xpos, ypos); framebuffer.CleanBuffer(); }
+    if (right_state == GLFW_PRESS) { camera.CameraZoom(xpos, ypos); }
+    else { camera.CameraBeginZoom(xpos, ypos); framebuffer.CleanBuffer(); }
+  }
+}
+
+inline void window_size_callback(GLFWwindow* window, int width, int height)
+{
+  glViewport(0, 0, width, height);
+  camera.CameraUpdateProj(width, height);
+  framebuffer.Resize(width, height);
+}
+
+inline GLFWwindow* InitWindow()
+{
+  // Initialize GLFW
+  glfwSetErrorCallback(error_callback);
+  if (!glfwInit()) { exit(EXIT_FAILURE); }
+  // Provide Window Hnits
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  // Create Window
+  GLFWwindow* window = glfwCreateWindow(camera.CameraWidth(), 
+					camera.CameraHeight(),
+					"OSPRay Volume Test Renderer", 
+					NULL, NULL);
+  if (!window) { glfwTerminate(); exit(EXIT_FAILURE); }
+  // Callback
+  glfwSetKeyCallback(window, key_callback);
+  glfwSetWindowSizeCallback(window, window_size_callback);
+  glfwSetCursorPosCallback(window, cursor_position_callback);
+  // Ready
+  glfwMakeContextCurrent(window);
+  gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+  glfwSwapInterval(1);
+  // Setup OpenGL
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_TEXTURE_3D);
+  // GUI
+  {
+    // Initialize GUI
+    ImGui_ImplGlfwGL3_Init(window, false);
+  }
+  return window;
+}
+
+inline void ShutdownWindow(GLFWwindow* window)
+{
+  // GUI
+  {
+    // Shutup GUI
+    ImGui_ImplGlfwGL3_Shutdown();
+  }
+  // Shutup window
+  glfwDestroyWindow(window);
 }
 
 #endif//_CALLBACK_H_

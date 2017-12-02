@@ -1,9 +1,8 @@
 #include "common.h"
-#include "helper.h"
 #include "trackball.h"
 #include "callback.h"
 
-void SetupTF(const std::vector<vec3f>& colors, 
+void SetupTF(const std::vector<ospcommon::vec3f>& colors, 
 	     const std::vector<float>& opacities, 
 	     int colorW, int colorH, int opacityW, int opacityH)
 {
@@ -17,7 +16,7 @@ void SetupTF(const std::vector<vec3f>& colors,
 				   OSP_FLOAT, 
 				   opacities.data());
   ospCommit(opacityData);
-  const vec2f valueRange(static_cast<float>(0), static_cast<float>(255));
+  const ospcommon::vec2f valueRange(static_cast<float>(0), static_cast<float>(255));
   ospSetData(transferFcn, "colors", colorsData);
   ospSetData(transferFcn, "opacities", opacityData);
   ospSetVec2f(transferFcn, "valueRange", (osp::vec2f&)valueRange);
@@ -33,21 +32,21 @@ void volume(int argc, const char **argv)
   int useGridAccelerator = 0; //argc > 2 ? atoi(argv[2]) : 0;
   int gradRendering      = 0; //argc > 3 ? atoi(argv[3]) : 0;
   //! transfer function
-  const std::vector<vec3f> colors = {
-    vec3f(0, 0, 0.563),
-    vec3f(0, 0, 1),
-    vec3f(0, 1, 1),
-    vec3f(0.5, 1, 0.5),
-    vec3f(1, 1, 0),
-    vec3f(1, 0, 0),
-    vec3f(0.5, 0, 0),
+  const std::vector<ospcommon::vec3f> colors = {
+    ospcommon::vec3f(0, 0, 0.563),
+    ospcommon::vec3f(0, 0, 1),
+    ospcommon::vec3f(0, 1, 1),
+    ospcommon::vec3f(0.5, 1, 0.5),
+    ospcommon::vec3f(1, 1, 0),
+    ospcommon::vec3f(1, 0, 0),
+    ospcommon::vec3f(0.5, 0, 0),
   };
   const std::vector<float> opacities = 
     { 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f };
   SetupTF(colors, opacities, 7, 1, 6, 1);
 
   // ! create volume
-  const vec3i dims(12, 10, 10);
+  const ospcommon::vec3i dims(12, 10, 10);
   auto volumeDataA = new unsigned char[dims.x * dims.y * dims.z];
   auto volumeDataB = new unsigned char[dims.x * dims.y * dims.z];
   cleanlist.push_back([=](){ 
@@ -145,10 +144,22 @@ void volume(int argc, const char **argv)
 
 int main(int argc, const char **argv)
 {
-  ospInit(&argc, argv);    
-  ospLoadModule("visit");
+  //------------------------------------------------------------------------------------------//
+  // OpenGL Setup
+  //------------------------------------------------------------------------------------------//
+  // Create Context
+  GLFWwindow* window = InitWindow();
+
+  //------------------------------------------------------------------------------------------//
+  // OSPRay Setup
+  //------------------------------------------------------------------------------------------//
+  ospInit(&argc, argv);
   ospLoadModule("tfn");
-    
+  
+  //! Init camera and framebuffer
+  camera.Init();
+  framebuffer.Init(camera.CameraWidth(), camera.CameraHeight());
+
   //! create world and renderer
   world = ospNewModel();
   renderer = ospNewRenderer("scivis"); 
@@ -157,72 +168,42 @@ int main(int argc, const char **argv)
   volume(argc, argv);    
   ospCommit(world);
 
-  //! camera
-  camera = ospNewCamera("perspective");
-  ospSetf(camera, "aspect", 
-	  static_cast<float>(WINSIZE.x) / 
-	  static_cast<float>(WINSIZE.y));
-  UpdateCamera(false);
-
   //! lighting
   OSPLight ambient_light = ospNewLight(renderer, "AmbientLight");
   ospSet1f(ambient_light, "intensity", 0.0f);
   ospCommit(ambient_light);
   OSPLight directional_light = ospNewLight(renderer, "DirectionalLight");
   ospSet1f(directional_light, "intensity", 2.0f);
-  ospSetVec3f(directional_light, "direction", 
-	      osp::vec3f{20.0f, 20.0f, 20.0f});
+  ospSetVec3f(directional_light, "direction", osp::vec3f{20.0f, 20.0f, 20.0f});
   ospCommit(directional_light);
   std::vector<OSPLight> light_list { ambient_light, directional_light };
-  OSPData lights = 
-    ospNewData(light_list.size(), OSP_OBJECT, light_list.data());
+  OSPData lights = ospNewData(light_list.size(), OSP_OBJECT, light_list.data());
   ospCommit(lights);
 
   //! renderer
   ospSetVec3f(renderer, "bgColor", osp::vec3f{0.5f, 0.5f, 0.5f});
   ospSetData(renderer, "lights", lights);
   ospSetObject(renderer, "model", world);
-  ospSetObject(renderer, "camera", camera);
+  ospSetObject(renderer, "camera", camera.OSPRayPtr());
   ospSet1i(renderer, "shadowEnabled", 0);
   ospSet1i(renderer, "oneSidedLighting", 0);
   ospCommit(renderer);
 
-  //! render to buffer
-  framebuffer = ospNewFrameBuffer((osp::vec2i&)WINSIZE, 
-				  OSP_FB_SRGBA, OSP_FB_COLOR | OSP_FB_ACCUM);
-  ospFrameBufferClear(framebuffer, OSP_FB_COLOR | OSP_FB_ACCUM);
-  ospRenderFrame(framebuffer, renderer, OSP_FB_COLOR | OSP_FB_ACCUM);
-  ofb = (uint32_t*)ospMapFrameBuffer(framebuffer, OSP_FB_COLOR);
-
-  //! initialize openGL
+  //------------------------------------------------------------------------------------------//
+  // Render
+  //------------------------------------------------------------------------------------------//
+  while (!glfwWindowShouldClose(window))
   {
-    glutInit(&argc, const_cast<char**>(argv));
-    glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
-    glutInitWindowPosition(WINX, WINY);
-    glutInitWindowSize(WINSIZE.x, WINSIZE.y);
-    glutCreateWindow(argv[0]);
-    GLenum err = glewInit();
-    if (GLEW_OK != err) {
-      std::cerr << "Error: Cannot Initialize GLEW " 
-		<< glewGetErrorString(err) << std::endl;
-      return EXIT_FAILURE;
-    }
-    gfb.Initialize(true, 4, WINSIZE.x, WINSIZE.y);
+    // clear
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // render
+    render();
+    // swap frame
+    glfwSwapBuffers(window);
+    glfwPollEvents();
   }
-
-  // execute the program
-  {
-    glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
-    glDisable(GL_DEPTH_TEST);
-    glutDisplayFunc(render);
-    glutIdleFunc(Idle);
-    glutMouseFunc(GetMouseButton);
-    glutMotionFunc(GetMousePosition);
-    glutKeyboardFunc(GetNormalKeys);
-    glutSpecialFunc(GetSpecialKeys);
-    glutInitContextFlags(GLUT_DEBUG);
-    glutMainLoop();
-  }
+  ShutdownWindow(window);
+  glfwTerminate();
 
   // exit
   Clean();
