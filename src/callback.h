@@ -124,7 +124,9 @@ inline GLFWwindow* InitWindow()
       ([ ]() { return 256; },
        [&](const std::vector<float>& c, const std::vector<float>& a)
        {
-	 SetupTF(c.data(), a.data(), c.size() / 3, 1, a.size(), 1);
+	 std::vector<float> o(a.size()/2);
+	 for (size_t i = 0; i < a.size() / 2; ++i) { o[i] = a[2*i+1]; }
+	 SetupTF(c.data(), o.data(), c.size() / 3, 1, o.size(), 1);
 	 framebuffer.CleanBuffer();
        });
   }

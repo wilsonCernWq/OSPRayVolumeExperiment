@@ -5,6 +5,16 @@
 void SetupTF(const void *colors, const void *opacities, 
 	     int colorW, int colorH, int opacityW, int opacityH)
 {
+  // printf("\n");
+  // for (int i = 0; i < colorW; ++i) {
+  //   printf("color %f %f %f\n",
+  // 	   ((float*)colors)[3 * i + 0], ((float*)colors)[3 * i + 1], ((float*)colors)[3 * i + 2]);
+  // }
+  // printf("\n");
+  // for (int i = 0; i < opacityW; ++i) {
+  //   printf("opacity %f\n", ((float*)opacities)[i]);
+  // }
+  // printf("\n");
   //! setup trasnfer function
   OSPData colorsData = ospNewData(colorW * colorH, OSP_FLOAT3, colors);
   ospCommit(colorsData);
@@ -13,8 +23,8 @@ void SetupTF(const void *colors, const void *opacities,
   ospSetData(transferFcn, "colors",    colorsData);
   ospSetData(transferFcn, "opacities", opacitiesData);
   ospSetVec2f(transferFcn, "valueRange",
-	      osp::vec2f{static_cast<float>(0),
-		         static_cast<float>(255)});
+  	      osp::vec2f{static_cast<float>(0),
+  		         static_cast<float>(255)});
   ospSet1i(transferFcn, "colorWidth",    colorW);
   ospSet1i(transferFcn, "colorHeight",   colorH);
   ospSet1i(transferFcn, "opacityWidth",  opacityW);
@@ -36,7 +46,7 @@ void volume(int argc, const char **argv)
     ospcommon::vec3f(1, 0, 0),
     ospcommon::vec3f(0.5, 0, 0),
   };
-  const std::vector<float> opacities = { 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f };
+  const std::vector<float> opacities = { 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, 0.0f };
   SetupTF(colors.data(), opacities.data(), colors.size(), 1, opacities.size(), 1);
   //! flags
   int useGridAccelerator = 0; //argc > 2 ? atoi(argv[2]) : 0;
