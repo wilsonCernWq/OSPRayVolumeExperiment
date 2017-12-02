@@ -12,6 +12,11 @@
 // following the implementation of
 // http://image.diku.dk/research/trackballs/index.html
 //
+// NOTE:
+// This trackball has some camera requirements:
+// 1) Camera should be located on negtive z axis initially
+// 2) Use y axis as the initial up vector
+//
 class Trackball {
 private:
   bool  inverse_rotate = true; // inverse rotation
