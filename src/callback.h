@@ -33,12 +33,6 @@ inline void Clean()
   for (auto& c : cleanlist) { c(); }
 }
 
-inline void render()
-{  
-  ospRenderFrame(framebuffer.OSPRayPtr(), renderer, OSP_FB_COLOR | OSP_FB_ACCUM);
-  framebuffer.Upload();
-}
-
 inline void error_callback(int error, const char* description)
 {
   fprintf(stderr, "Error: %s\n", description);
@@ -70,13 +64,19 @@ inline void window_size_callback(GLFWwindow* window, int width, int height)
   framebuffer.Resize(width, height);
 }
 
+inline void render()
+{  
+  ospRenderFrame(framebuffer.OSPRayPtr(), renderer, OSP_FB_COLOR | OSP_FB_ACCUM);
+  framebuffer.Upload();
+}
+
 inline GLFWwindow* InitWindow()
 {
   // Initialize GLFW
   glfwSetErrorCallback(error_callback);
   if (!glfwInit()) { exit(EXIT_FAILURE); }
-  // Provide Window Hnits
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  // Provide Window Hints
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1);
@@ -95,9 +95,10 @@ inline GLFWwindow* InitWindow()
   glfwMakeContextCurrent(window);
   gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
   glfwSwapInterval(1);
+  check_error_gl("Ready");
   // Setup OpenGL
   glEnable(GL_DEPTH_TEST);
-  glEnable(GL_TEXTURE_3D);
+  check_error_gl("Setup OpenGL Options");
   // GUI
   {
     // Initialize GUI

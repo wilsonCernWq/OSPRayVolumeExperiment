@@ -149,6 +149,7 @@ int main(int argc, const char **argv)
   //------------------------------------------------------------------------------------------//
   // Create Context
   GLFWwindow* window = InitWindow();
+  check_error_gl("Initialized OpenGL");
 
   //------------------------------------------------------------------------------------------//
   // OSPRay Setup
