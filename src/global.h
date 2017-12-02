@@ -15,10 +15,14 @@ Camera camera;
 //! framebuffers
 Framebuffer framebuffer;
 
-//! ospray objects
+//! renderer
 OSPModel world = nullptr;
 OSPRenderer renderer = nullptr;
+
+//! transfer function
 OSPTransferFunction transferFcn = nullptr;
+void SetupTF(const void *colors, const void *opacities, 
+	     int colorW, int colorH, int opacityW, int opacityH);
 
 //! cleaning
 std::vector<std::function<void()>> cleanlist;

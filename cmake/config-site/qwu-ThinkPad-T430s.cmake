@@ -2,8 +2,8 @@
 # configuration for hastur
 #
 # OSPRay development directory
-set(ospray_DIR /home/qwu/work/ospray/install/lib/cmake/ospray-1.4.1)
-set(embree_DIR /home/qwu/software/embree-2.15.0.x86_64.linux)
+set(ospray_DIR /home/qwu/work/ospray/install/tfn2d_branch/lib/cmake/ospray-1.5.0)
+set(embree_DIR /home/qwu/software/embree-2.17.1.x86_64.linux)
 add_definitions(-DUSE_VISITOSPRAY)
 # 
 # other library

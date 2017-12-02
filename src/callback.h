@@ -5,11 +5,21 @@
 #ifndef _CALLBACK_H_
 #define _CALLBACK_H_
 
+#include <memory>
+
 #include "common.h"
 #include "global.h"
 
 #include <imgui.h>
 #include <imgui_impl_glfw_gl3.h>
+
+#ifndef USE_TFN_MODULE
+# error "Missing TransferFunctionModule!!!"
+#else
+# include "widgets/TransferFunctionWidget.h"
+#endif
+
+static std::shared_ptr<tfn::tfn_widget::TransferFunctionWidget> tfnWidget;
 
 //! functions
 inline void Clean()
@@ -46,7 +56,7 @@ inline void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 
 inline void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
-  //if (!CapturedByGUI())
+  if (!ImGui::GetIO().WantCaptureMouse)
   {
     int left_state  = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
     int right_state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
@@ -68,6 +78,13 @@ inline void render()
 {  
   ospRenderFrame(framebuffer.OSPRayPtr(), renderer, OSP_FB_COLOR | OSP_FB_ACCUM);
   framebuffer.Upload();
+  // Draw GUI
+  {
+    ImGui_ImplGlfwGL3_NewFrame();
+    tfnWidget->drawUi();
+    tfnWidget->render();
+    ImGui::Render();
+  }
 }
 
 inline GLFWwindow* InitWindow()
@@ -103,6 +120,13 @@ inline GLFWwindow* InitWindow()
   {
     // Initialize GUI
     ImGui_ImplGlfwGL3_Init(window, false);
+    tfnWidget = std::make_shared<tfn::tfn_widget::TransferFunctionWidget>
+      ([ ]() { return 256; },
+       [&](const std::vector<float>& c, const std::vector<float>& a)
+       {
+	 SetupTF(c.data(), a.data(), c.size() / 3, 1, a.size(), 1);
+	 framebuffer.CleanBuffer();
+       });
   }
   return window;
 }

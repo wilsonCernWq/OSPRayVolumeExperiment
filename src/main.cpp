@@ -2,35 +2,30 @@
 #include "trackball.h"
 #include "callback.h"
 
-void SetupTF(const std::vector<ospcommon::vec3f>& colors, 
-	     const std::vector<float>& opacities, 
+void SetupTF(const void *colors, const void *opacities, 
 	     int colorW, int colorH, int opacityW, int opacityH)
 {
   //! setup trasnfer function
-  transferFcn = ospNewTransferFunction("piecewise_linear_2d");
-  OSPData colorsData = ospNewData(colors.size(), 
-				  OSP_FLOAT3, 
-				  colors.data());
+  OSPData colorsData = ospNewData(colorW * colorH, OSP_FLOAT3, colors);
   ospCommit(colorsData);
-  OSPData opacityData = ospNewData(opacities.size(), 
-				   OSP_FLOAT, 
-				   opacities.data());
-  ospCommit(opacityData);
-  const ospcommon::vec2f valueRange(static_cast<float>(0), static_cast<float>(255));
-  ospSetData(transferFcn, "colors", colorsData);
-  ospSetData(transferFcn, "opacities", opacityData);
-  ospSetVec2f(transferFcn, "valueRange", (osp::vec2f&)valueRange);
-  ospSet1i(transferFcn, "colorWidth",  colorW);
-  ospSet1i(transferFcn, "colorHeight", colorH);
+  OSPData opacitiesData = ospNewData(opacityW * opacityH, OSP_FLOAT, opacities);
+  ospCommit(opacitiesData);
+  ospSetData(transferFcn, "colors",    colorsData);
+  ospSetData(transferFcn, "opacities", opacitiesData);
+  ospSetVec2f(transferFcn, "valueRange",
+	      osp::vec2f{static_cast<float>(0),
+		         static_cast<float>(255)});
+  ospSet1i(transferFcn, "colorWidth",    colorW);
+  ospSet1i(transferFcn, "colorHeight",   colorH);
   ospSet1i(transferFcn, "opacityWidth",  opacityW);
   ospSet1i(transferFcn, "opacityHeight", opacityH);
   ospCommit(transferFcn);
+  ospRelease(colorsData);
+  ospRelease(opacitiesData);
 }
 
 void volume(int argc, const char **argv) 
 {
-  int useGridAccelerator = 0; //argc > 2 ? atoi(argv[2]) : 0;
-  int gradRendering      = 0; //argc > 3 ? atoi(argv[3]) : 0;
   //! transfer function
   const std::vector<ospcommon::vec3f> colors = {
     ospcommon::vec3f(0, 0, 0.563),
@@ -41,11 +36,12 @@ void volume(int argc, const char **argv)
     ospcommon::vec3f(1, 0, 0),
     ospcommon::vec3f(0.5, 0, 0),
   };
-  const std::vector<float> opacities = 
-    { 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f };
-  SetupTF(colors, opacities, 7, 1, 6, 1);
-
-  // ! create volume
+  const std::vector<float> opacities = { 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f };
+  SetupTF(colors.data(), opacities.data(), colors.size(), 1, opacities.size(), 1);
+  //! flags
+  int useGridAccelerator = 0; //argc > 2 ? atoi(argv[2]) : 0;
+  int gradRendering      = 0; //argc > 3 ? atoi(argv[3]) : 0;
+  //! create volume
   const ospcommon::vec3i dims(12, 10, 10);
   auto volumeDataA = new unsigned char[dims.x * dims.y * dims.z];
   auto volumeDataB = new unsigned char[dims.x * dims.y * dims.z];
@@ -144,16 +140,16 @@ void volume(int argc, const char **argv)
 
 int main(int argc, const char **argv)
 {
-  //------------------------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------------------//
   // OpenGL Setup
-  //------------------------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------------------//
   // Create Context
   GLFWwindow* window = InitWindow();
   check_error_gl("Initialized OpenGL");
 
-  //------------------------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------------------//
   // OSPRay Setup
-  //------------------------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------------------//
   ospInit(&argc, argv);
   ospLoadModule("tfn");
   
@@ -166,6 +162,7 @@ int main(int argc, const char **argv)
   renderer = ospNewRenderer("scivis"); 
 
   //! setup volume/geometry
+  transferFcn = ospNewTransferFunction("piecewise_linear_2d");
   volume(argc, argv);    
   ospCommit(world);
 
@@ -190,9 +187,9 @@ int main(int argc, const char **argv)
   ospSet1i(renderer, "oneSidedLighting", 0);
   ospCommit(renderer);
 
-  //------------------------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------------------//
   // Render
-  //------------------------------------------------------------------------------------------//
+  //---------------------------------------------------------------------------------------//
   while (!glfwWindowShouldClose(window))
   {
     // clear
