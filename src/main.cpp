@@ -52,28 +52,6 @@ void volume(int argc, const char **argv)
     }
   }
   
-  //! calculate gradient
-  // value range (0, 255, 1)
-  // gradient range (0, 255, 1)
-  const float xmin = 0, xmax = 255, xstp = 1;
-  const float ymin = 0, ymax = 255, ystp = 1;
-  std::vector<float> hist (255 * 255, 0);
-  for (int x = 0; x < dims.x; ++x) {
-    for (int y = 0; y < dims.y; ++y) {
-      for (int z = 0; z < dims.z; ++z) {
-  	const int i = z * dims.y * dims.x + y * dims.x + x;
-  	const float v = volumeData[i];
-	const float dx = volumeData[i + 1] - v;
-	const float dy = volumeData[i + dim.x] - v;
-	const float dx = volumeData[i + dim.x * dim.y] - v;
-	const float g = sqrt(dx * dx + dy * dy + dz * dz);
-	const ix = round((v - xmin) / xstp);
-	const iy = round((g - ymin) / ystp);
-	hist[iy * 256 + ix] += 1.f;
-      }
-    }
-  }
-  
   //! create ospray volume
   auto t1 = std::chrono::system_clock::now();
   {
