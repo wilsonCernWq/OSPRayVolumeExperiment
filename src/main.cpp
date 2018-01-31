@@ -5,16 +5,6 @@
 void SetupTF(const void *colors, const void *opacities, 
 	     int colorW, int colorH, int opacityW, int opacityH)
 {
-  // printf("\n");
-  // for (int i = 0; i < colorW; ++i) {
-  //   printf("color %f %f %f\n",
-  // 	   ((float*)colors)[3 * i + 0], ((float*)colors)[3 * i + 1], ((float*)colors)[3 * i + 2]);
-  // }
-  // printf("\n");
-  // for (int i = 0; i < opacityW; ++i) {
-  //   printf("opacity %f\n", ((float*)opacities)[i]);
-  // }
-  // printf("\n");
   //! setup trasnfer function
   OSPData colorsData = ospNewData(colorW * colorH, OSP_FLOAT3, colors);
   ospCommit(colorsData);
@@ -48,104 +38,46 @@ void volume(int argc, const char **argv)
   };
   const std::vector<float> opacities = { 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, 0.0f };
   SetupTF(colors.data(), opacities.data(), colors.size(), 1, opacities.size(), 1);
-  //! flags
-  int useGridAccelerator = 0; //argc > 2 ? atoi(argv[2]) : 0;
-  int gradRendering      = 0; //argc > 3 ? atoi(argv[3]) : 0;
   //! create volume
-  const ospcommon::vec3i dims(12, 10, 10);
-  auto volumeDataA = new unsigned char[dims.x * dims.y * dims.z];
-  auto volumeDataB = new unsigned char[dims.x * dims.y * dims.z];
-  cleanlist.push_back([=](){ 
-      delete[] volumeDataA;
-      delete[] volumeDataB;
-    });
-  const int xA = -1;
-  const int xB = -9;
-  for (int x = -9; x < 11; ++x) {
-    int c;
-    c = ::sin((x + 9)/19.0 * M_PI / 2.0) * 255.0;
-    std::cout << "x = " << x << " v = " << c << std::endl;
+  const ospcommon::vec3i dims(20, 10, 10);
+  auto volumeData = new unsigned char[dims.x * dims.y * dims.z];
+  cleanlist.push_back([=](){ delete[] volumeData; });
+  for (int x = 0; x < dims.x; ++x) {
     for (int y = 0; y < dims.y; ++y) {
-      for (int z = 0; z < dims.z; ++z) {		
-	if (x <= 2) { // x = -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2
-	  int i = z * dims.y * dims.x + y * dims.x + x + 9;
-	  volumeDataB[i] = c;
-	}
-	if (x >=-1) { // x = -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-	  int i = z * dims.y * dims.x + y * dims.x + x + 1;
-	  volumeDataA[i] = c;
-	}
+      for (int z = 0; z < dims.z; ++z) {
+	int c = sin(x/(float)(dims.x-1) * M_PI / 2.0) * 255.0;
+	int i = z * dims.y * dims.x + y * dims.x + x;
+	volumeData[i] = c;
       }
     }
   }
+  
+  //! create ospray volume
   auto t1 = std::chrono::system_clock::now();
   {
-    //OSPVolume volume = ospNewVolume("visit_shared_structured_volume");
-    //OSPVolume volume = ospNewVolume("shared_structured_volume");
     OSPVolume volume = ospNewVolume("shared_structured_volume");
     OSPData voxelData = ospNewData(dims.x * dims.y * dims.z, 
-				   OSP_UCHAR, volumeDataA, 
+				   OSP_UCHAR, volumeData, 
 				   OSP_DATA_SHARED_BUFFER);
-    cleanlist.push_back([=](){ // cleaning function
-	ospRelease(volume);
-	ospRelease(voxelData);
-      });
-    ospSet1i(volume, "useGridAccelerator", useGridAccelerator);
+    cleanlist.push_back([=]() { ospRelease(volume); ospRelease(voxelData); });
     ospSetString(volume, "voxelType", "uchar");
     ospSetVec3i(volume, "dimensions", (osp::vec3i&)dims);
-    ospSetVec3f(volume, "gridOrigin", 
-		osp::vec3f
-		{(float)xA,(float)-dims.y/2.0f,(float)-dims.z/2.0f});
+    ospSetVec3f(volume, "gridOrigin",  osp::vec3f{-dims.x/2.0f,-dims.y/2.0f,-dims.z/2.0f});
     ospSetVec3f(volume, "gridSpacing", osp::vec3f{1.0f, 1.0f, 1.0f});
-    ospSetVec3f(volume, "volumeClippingBoxLower",
-		osp::vec3f{0.5f,(float)-dims.y/2.0f,(float)-dims.z/2.0f});
-    ospSetVec3f(volume, "volumeClippingBoxUpper",
-		osp::vec3f{10.0f,(float) dims.y/2.0f,(float) dims.z/2.0f});
-    ospSet1f(volume, "samplingRate", 8.0f);
-    ospSet1i(volume, "preIntegration", 0);
+    ospSet1f(volume, "samplingRate", 9.0f);
+    ospSet1i(volume, "gradientShadingEnabled", 0);
+    ospSet1i(volume, "useGridAccelerator", 0);
     ospSet1i(volume, "adaptiveSampling", 0);
-    ospSet1i(volume, "singleShade", 0);
-    ospSetObject(volume, "transferFunction", transferFcn);
-    ospSetData(volume, "voxelData", voxelData);
-    ospSet1i(volume, "gradientShadingEnabled", gradRendering);
-    ospCommit(volume);
-    ospAddVolume(world, volume);
-  }
-  {
-    //OSPVolume volume = ospNewVolume("visit_shared_structured_volume");
-    //OSPVolume volume = ospNewVolume("shared_structured_volume");
-    OSPVolume volume = ospNewVolume("shared_structured_volume");
-    OSPData voxelData = ospNewData(dims.x * dims.y * dims.z,
-  				   OSP_UCHAR, volumeDataB,
-  				   OSP_DATA_SHARED_BUFFER);
-    cleanlist.push_back([=](){ // cleaning function
-  	ospRelease(volume);
-  	ospRelease(voxelData);
-      });
-    ospSet1i(volume, "useGridAccelerator", useGridAccelerator);
-    ospSetString(volume, "voxelType", "uchar");
-    ospSetVec3i(volume, "dimensions", (osp::vec3i&)dims);
-    ospSetVec3f(volume, "gridOrigin",
-  		osp::vec3f
-  		{(float)xB,(float)-dims.y/2.0f,(float)-dims.z/2.0f});
-    ospSetVec3f(volume, "gridSpacing", osp::vec3f{1.0f, 1.0f, 1.0f});
-    ospSetVec3f(volume, "volumeClippingBoxLower",
-  		osp::vec3f{-9.0f,(float)-dims.y/2.0f,(float)-dims.z/2.0f});
-    ospSetVec3f(volume, "volumeClippingBoxUpper",
-  		osp::vec3f{0.5f,(float)dims.y/2.0f,(float) dims.z/2.0f});
-    ospSet1f(volume, "samplingRate", 8.0f);
     ospSet1i(volume, "preIntegration", 0);
-    ospSet1i(volume, "adaptiveSampling", 0);
     ospSet1i(volume, "singleShade", 0);
-    ospSetObject(volume, "transferFunction", transferFcn);
     ospSetData(volume, "voxelData", voxelData);
-    ospSet1i(volume, "gradientShadingEnabled", gradRendering);
+    ospSetObject(volume, "transferFunction", transferFcn);
     ospCommit(volume);
     ospAddVolume(world, volume);
   }
   auto t2 = std::chrono::system_clock::now();
   std::chrono::duration<double> dur = t2 - t1;
-  std::cout << "finish commits " << dur.count() / 2.0 << " seconds" << std::endl;
+  std::cout << "finish commits " << dur.count() << " seconds" << std::endl;
 }
 
 int main(int argc, const char **argv)
@@ -196,7 +128,6 @@ int main(int argc, const char **argv)
   ospSet1i(renderer, "shadowEnabled", 0);
   ospSet1i(renderer, "oneSidedLighting", 0);
   ospCommit(renderer);
-
   //---------------------------------------------------------------------------------------//
   // Render
   //---------------------------------------------------------------------------------------//
