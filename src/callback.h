@@ -81,7 +81,7 @@ inline void render()
   // Draw GUI
   {
     ImGui_ImplGlfwGL3_NewFrame();
-    tfnWidget->drawUi();
+    tfnWidget->drawUI();
     tfnWidget->render();
     ImGui::Render();
   }

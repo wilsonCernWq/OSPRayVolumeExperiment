@@ -172,7 +172,7 @@ int main(int argc, const char **argv)
   renderer = ospNewRenderer("scivis"); 
 
   //! setup volume/geometry
-  transferFcn = ospNewTransferFunction("piecewise_linear_2d");
+  transferFcn = ospNewTransferFunction("piecewise_linear");
   volume(argc, argv);    
   ospCommit(world);
 
