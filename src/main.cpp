@@ -12,13 +12,13 @@ void SetupTF(const void *colors, const void *opacities,
   ospCommit(opacitiesData);
   ospSetData(transferFcn, "colors",    colorsData);
   ospSetData(transferFcn, "opacities", opacitiesData);
-  ospSetVec2f(transferFcn, "valueRange",
-  	      osp::vec2f{static_cast<float>(0),
-  		         static_cast<float>(255)});
-  ospSet1i(transferFcn, "colorWidth",    colorW);
-  ospSet1i(transferFcn, "colorHeight",   colorH);
-  ospSet1i(transferFcn, "opacityWidth",  opacityW);
-  ospSet1i(transferFcn, "opacityHeight", opacityH);
+  //  ospSetVec2f(transferFcn, "valueRange",
+  //	      osp::vec2f{static_cast<float>(0),
+  //		         static_cast<float>(255)});
+  // ospSet1i(transferFcn, "colorWidth",    colorW);
+  // ospSet1i(transferFcn, "colorHeight",   colorH);
+  // ospSet1i(transferFcn, "opacityWidth",  opacityW);
+  // ospSet1i(transferFcn, "opacityHeight", opacityH);
   ospCommit(transferFcn);
   ospRelease(colorsData);
   ospRelease(opacitiesData);
@@ -39,15 +39,19 @@ void volume(int argc, const char **argv)
   const std::vector<float> opacities = { 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, 0.0f };
   SetupTF(colors.data(), opacities.data(), colors.size(), 1, opacities.size(), 1);
   //! create volume
+#define TYPE_CXX unsigned char
+#define TYPE_OSP OSP_USHORT
+#define TYPE_CXX unsigned char
+
   const ospcommon::vec3i dims(20, 10, 10);
-  auto volumeData = new unsigned char[dims.x * dims.y * dims.z];
+  auto volumeData = new unsigned short[dims.x * dims.y * dims.z];
   cleanlist.push_back([=](){ delete[] volumeData; });
   for (int x = 0; x < dims.x; ++x) {
     for (int y = 0; y < dims.y; ++y) {
       for (int z = 0; z < dims.z; ++z) {
 	int c = sin(x/(float)(dims.x-1) * M_PI / 2.0) * 255.0;
 	int i = z * dims.y * dims.x + y * dims.x + x;
-	volumeData[i] = c;
+	volumeData[i] = (unsigned short)c;
       }
     }
   }
@@ -57,14 +61,14 @@ void volume(int argc, const char **argv)
   {
     OSPVolume volume = ospNewVolume("shared_structured_volume");
     OSPData voxelData = ospNewData(dims.x * dims.y * dims.z, 
-				   OSP_UCHAR, volumeData, 
-				   OSP_DATA_SHARED_BUFFER);
+				   OSP_USHORT, volumeData //, 
+				   /*OSP_DATA_SHARED_BUFFER*/);
     cleanlist.push_back([=]() { ospRelease(volume); ospRelease(voxelData); });
-    ospSetString(volume, "voxelType", "uchar");
+    ospSetString(volume, "voxelType", "ushort");
     ospSetVec3i(volume, "dimensions", (osp::vec3i&)dims);
     ospSetVec3f(volume, "gridOrigin",  osp::vec3f{-dims.x/2.0f,-dims.y/2.0f,-dims.z/2.0f});
     ospSetVec3f(volume, "gridSpacing", osp::vec3f{1.0f, 1.0f, 1.0f});
-    ospSet1f(volume, "samplingRate", 9.0f);
+    ospSet1f(volume, "samplingRate", 1.0f);
     ospSet1i(volume, "gradientShadingEnabled", 0);
     ospSet1i(volume, "useGridAccelerator", 0);
     ospSet1i(volume, "adaptiveSampling", 0);
