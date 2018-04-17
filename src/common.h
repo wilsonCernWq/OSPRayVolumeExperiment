@@ -30,7 +30,9 @@
 //
 // OpenMP
 //
-#include <omp.h>
+#if defined(_OPENMP)
+# include <omp.h>
+#endif
 
 //
 // GLFW

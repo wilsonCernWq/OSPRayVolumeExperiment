@@ -13,13 +13,13 @@
 #include <imgui.h>
 #include <imgui_impl_glfw_gl3.h>
 
-#ifndef USE_TFN_MODULE
-# error "Missing TransferFunctionModule!!!"
-#else
+#ifdef USE_TFN_MODULE
 # include "widgets/TransferFunctionWidget.h"
 #endif
 
+#ifdef USE_TFN_MODULE
 static std::shared_ptr<tfn::tfn_widget::TransferFunctionWidget> tfnWidget;
+#endif
 
 //! functions
 inline void Clean()
@@ -81,8 +81,10 @@ inline void render()
   // Draw GUI
   {
     ImGui_ImplGlfwGL3_NewFrame();
+#ifdef USE_TFN_MODULE
     tfnWidget->drawUI();
     tfnWidget->render();
+#endif
     ImGui::Render();
   }
 }
@@ -120,6 +122,7 @@ inline GLFWwindow* InitWindow()
   {
     // Initialize GUI
     ImGui_ImplGlfwGL3_Init(window, false);
+#ifdef USE_TFN_MODULE
     tfnWidget = std::make_shared<tfn::tfn_widget::TransferFunctionWidget>
       ([ ]() { return 256; },
        [&](const std::vector<float>& c, const std::vector<float>& a)
@@ -129,6 +132,7 @@ inline GLFWwindow* InitWindow()
 	 SetupTF(c.data(), o.data(), c.size() / 3, 1, o.size(), 1);
 	 framebuffer.CleanBuffer();
        });
+#endif
   }
   return window;
 }
