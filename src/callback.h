@@ -83,7 +83,7 @@ inline void render()
     ImGui_ImplGlfwGL3_NewFrame();
 #ifdef USE_TFN_MODULE
     tfnWidget->drawUI();
-    tfnWidget->render();
+    tfnWidget->render(256);
 #endif
     ImGui::Render();
   }
@@ -96,10 +96,10 @@ inline GLFWwindow* InitWindow()
   if (!glfwInit()) { exit(EXIT_FAILURE); }
   // Provide Window Hints
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  //glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
   // Create Window
   GLFWwindow* window = glfwCreateWindow(camera.CameraWidth(), 
 					camera.CameraHeight(),
@@ -124,8 +124,9 @@ inline GLFWwindow* InitWindow()
     ImGui_ImplGlfwGL3_Init(window, false);
 #ifdef USE_TFN_MODULE
     tfnWidget = std::make_shared<tfn::tfn_widget::TransferFunctionWidget>
-      ([ ]() { return 256; },
-       [&](const std::vector<float>& c, const std::vector<float>& a)
+      ([&](const std::vector<float>& c, 
+           const std::vector<float>& a,
+           const std::array<float, 2>& r)
        {
 	 std::vector<float> o(a.size()/2);
 	 for (size_t i = 0; i < a.size() / 2; ++i) { o[i] = a[2*i+1]; }

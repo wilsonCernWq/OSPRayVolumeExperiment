@@ -12,9 +12,9 @@ void SetupTF(const void *colors, const void *opacities,
   ospCommit(opacitiesData);
   ospSetData(transferFcn, "colors",    colorsData);
   ospSetData(transferFcn, "opacities", opacitiesData);
-  //  ospSetVec2f(transferFcn, "valueRange",
-  //	      osp::vec2f{static_cast<float>(0),
-  //		         static_cast<float>(255)});
+  ospSetVec2f(transferFcn, "valueRange",
+  	      osp::vec2f{static_cast<float>(0),
+                         static_cast<float>(255)});
   // ospSet1i(transferFcn, "colorWidth",    colorW);
   // ospSet1i(transferFcn, "colorHeight",   colorH);
   // ospSet1i(transferFcn, "opacityWidth",  opacityW);
@@ -37,21 +37,23 @@ void volume(int argc, const char **argv)
     ospcommon::vec3f(0.5, 0, 0),
   };
   const std::vector<float> opacities = { 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, 0.0f };
-  SetupTF(colors.data(), opacities.data(), colors.size(), 1, opacities.size(), 1);
+  SetupTF(colors.data(), opacities.data(), 
+          colors.size(), 1, opacities.size(), 1);
+
   //! create volume
 #define TYPE_CXX unsigned char
-#define TYPE_OSP OSP_USHORT
-#define TYPE_CXX unsigned char
+#define TYPE_OSP OSP_UCHAR
+#define TYPE_STR "uchar"
 
   const ospcommon::vec3i dims(20, 10, 10);
-  auto volumeData = new unsigned short[dims.x * dims.y * dims.z];
+  auto volumeData = new TYPE_CXX[dims.x * dims.y * dims.z];
   cleanlist.push_back([=](){ delete[] volumeData; });
   for (int x = 0; x < dims.x; ++x) {
     for (int y = 0; y < dims.y; ++y) {
       for (int z = 0; z < dims.z; ++z) {
 	int c = sin(x/(float)(dims.x-1) * M_PI / 2.0) * 255.0;
 	int i = z * dims.y * dims.x + y * dims.x + x;
-	volumeData[i] = (unsigned short)c;
+	volumeData[i] = (TYPE_CXX)c;
       }
     }
   }
@@ -61,10 +63,10 @@ void volume(int argc, const char **argv)
   {
     OSPVolume volume = ospNewVolume("shared_structured_volume");
     OSPData voxelData = ospNewData(dims.x * dims.y * dims.z, 
-				   OSP_USHORT, volumeData //, 
+				   TYPE_OSP, volumeData //, 
 				   /*OSP_DATA_SHARED_BUFFER*/);
     cleanlist.push_back([=]() { ospRelease(volume); ospRelease(voxelData); });
-    ospSetString(volume, "voxelType", "ushort");
+    ospSetString(volume, "voxelType", TYPE_STR);
     ospSetVec3i(volume, "dimensions", (osp::vec3i&)dims);
     ospSetVec3f(volume, "gridOrigin",  osp::vec3f{-dims.x/2.0f,-dims.y/2.0f,-dims.z/2.0f});
     ospSetVec3f(volume, "gridSpacing", osp::vec3f{1.0f, 1.0f, 1.0f});
@@ -98,6 +100,7 @@ int main(int argc, const char **argv)
   //---------------------------------------------------------------------------------------//
   ospInit(&argc, argv);
   ospLoadModule("tfn");
+  ospLoadModule("ispc");
   
   //! Init camera and framebuffer
   camera.Init();
