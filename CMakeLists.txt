@@ -38,7 +38,7 @@ else (USE_OSPRAY)
   find_package(ospray QUIET)
 endif (USE_OSPRAY)
 if (ospray_FOUND)
-  if (NOT TARGET ospray)
+  if (NOT TARGET ospray_package)
     set(_skip_next_ OFF)
     set(_ospray_libs_ "")
     foreach (l ${OSPRAY_LIBRARIES})
@@ -55,8 +55,8 @@ if (ospray_FOUND)
         endif ()
       endif ()
     endforeach()
-    add_library(ospray INTERFACE IMPORTED)
-    set_target_properties(ospray PROPERTIES
+    add_library(ospray_package INTERFACE IMPORTED)
+    set_target_properties(ospray_package PROPERTIES
       INTERFACE_COMPILE_DEFINITIONS USE_OSP=1
       INTERFACE_INCLUDE_DIRECTORIES "${OSPRAY_INCLUDE_DIRS}"
       INTERFACE_LINK_LIBRARIES "${_ospray_libs_}")
@@ -69,7 +69,7 @@ add_subdirectory(src/viewer)
 add_executable(renderer src/main.cpp)
 target_link_libraries(renderer
   imgui OpenGL glad glfw
-  ospray
+  ospray_package
   ospray_app_viewer)
 set_target_properties(renderer PROPERTIES
   CXX_STANDARD 11)
