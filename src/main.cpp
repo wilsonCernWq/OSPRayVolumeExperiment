@@ -9,8 +9,7 @@ using namespace ospcommon;
 
 OSPVolume make_volume(int argc, const char **argv, OSPTransferFunction transferFcn) 
 {
-  //! create volume
-  const ospcommon::vec3i dims(20, 10, 10);
+  const vec3i dims(20, 10, 10);
   auto volumeData = new TYPE_CXX[dims.x * dims.y * dims.z];
   for (int x = 0; x < dims.x; ++x) {
     for (int y = 0; y < dims.y; ++y) {
@@ -21,9 +20,26 @@ OSPVolume make_volume(int argc, const char **argv, OSPTransferFunction transferF
       }
     }
   }
-  
-  //! create ospray volume
-  auto t1 = std::chrono::system_clock::now();
+  const std::vector<vec3f> colors = {
+    vec3f(0, 0, 0.563),
+    vec3f(0, 0, 1),
+    vec3f(0, 1, 1),
+    vec3f(0.5, 1, 0.5),
+    vec3f(1, 1, 0),
+    vec3f(1, 0, 0),
+    vec3f(0.5, 0, 0),
+  };
+  const std::vector<float> opacities = { 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, 0.0f };
+  OSPData colorsData = ospNewData(colors.size(), OSP_FLOAT3, colors.data());
+  ospCommit(colorsData);
+  OSPData opacitiesData = ospNewData(opacities.size(), OSP_FLOAT, opacities.data());
+  ospCommit(opacitiesData);
+  ospSetData(transferFcn, "colors",    colorsData);
+  ospSetData(transferFcn, "opacities", opacitiesData);
+  ospSet2f(transferFcn, "valueRange", 0, 255);
+  ospCommit(transferFcn);
+  ospRelease(colorsData);
+  ospRelease(opacitiesData);  
   OSPVolume volume = ospNewVolume("shared_structured_volume");
   OSPData voxelData = ospNewData(dims.x * dims.y * dims.z, 
                                  TYPE_OSP, volumeData, 
@@ -40,10 +56,8 @@ OSPVolume make_volume(int argc, const char **argv, OSPTransferFunction transferF
   ospSet1i(volume, "singleShade", 0);
   ospSetData(volume, "voxelData", voxelData);
   ospSetObject(volume, "transferFunction", transferFcn);
-  ospCommit(volume);  
-  auto t2 = std::chrono::system_clock::now();
-  std::chrono::duration<double> dur = t2 - t1;
-  std::cout << "finish commits " << dur.count() << " seconds" << std::endl;
+  ospCommit(volume);
+  ospRelease(voxelData);
   return volume;
 }
 
@@ -70,7 +84,7 @@ int main(int ac, const char **av)
   ospCommit(renderer);
 
   viewer::Handler(camera, "perspective",
-                  osp::vec3f {0.f, 0.f, -20.f},
+                  osp::vec3f {0.f, 0.f, -80.f},
                   osp::vec3f {0.f, 1.f, 0.f},
                   osp::vec3f {0.f, 0.f, 0.f});
   viewer::Handler(transferFcn, 0, 256);

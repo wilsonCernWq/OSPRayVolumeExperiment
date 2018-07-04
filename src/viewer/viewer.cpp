@@ -98,7 +98,7 @@ void WidgetDraw() {
   static bool show_app_camera = false;
   static bool show_app_lights = false;
   static bool show_app_renderer = false;
-  static bool show_app_tfn = false;
+  static bool show_app_tfn = true;
   // metrics
   static bool show_app_fps = true;
   if (ImGui::BeginMainMenuBar()) {

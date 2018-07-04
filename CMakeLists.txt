@@ -68,7 +68,7 @@ endif ()
 add_subdirectory(src/viewer)
 add_executable(renderer src/main.cpp)
 target_link_libraries(renderer
-  glm imgui OpenGL glad glfw
+  imgui OpenGL glad glfw
   ospray
   ospray_app_viewer)
 set_target_properties(renderer PROPERTIES

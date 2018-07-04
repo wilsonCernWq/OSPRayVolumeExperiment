@@ -19,7 +19,7 @@ endif ()
 #--- GLFW
 #
 if (NOT TARGET glfw)
-  if (EXISTS ${PROJECT_SOURCE_DIR}/external/glfw)
+  if (EXISTS ${PROJECT_SOURCE_DIR}/external/glfw/CMakeLists.txt)
     set(GLFW_BUILD_DOCS     OFF)
     set(GLFW_BUILD_EXAMPLES OFF)
     set(GLFW_BUILD_TESTS    OFF)
@@ -52,7 +52,7 @@ endif ()
 #--- ImGUI
 #
 if (NOT TARGET imgui)
-  if(EXISTS ${PROJECT_SOURCE_DIR}/external/imgui)
+  if(EXISTS ${PROJECT_SOURCE_DIR}/external/imgui/CMakeLists.txt)
     add_subdirectory(${PROJECT_SOURCE_DIR}/external/imgui)
   else ()
     messate(FATAL_ERROR "cannot find imgui")
@@ -62,7 +62,7 @@ endif ()
 #--- glm
 #
 if (NOT TARGET glm)
-  if (EXISTS ${PROJECT_SOURCE_DIR}/external/glm)
+  if (EXISTS ${PROJECT_SOURCE_DIR}/external/glm/CMakeLists.txt)
     set(GLM_INSTALL_ENABLE OFF)
     add_subdirectory(${PROJECT_SOURCE_DIR}/external/glm)
   endif ()
