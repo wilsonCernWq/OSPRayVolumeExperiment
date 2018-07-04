@@ -6,12 +6,42 @@
 #define _COMMON_H_
 
 #define NOMINMAX
+#ifndef EXIT_SUCCESS
+#define EXIT_SUCCESS 0
+#endif
+#ifndef EXIT_FAILURE
+#define EXIT_FAILURE 1
+#endif
 
 //
 // include ospray
 //
-#include "ospray/ospray.h"
-#include "ospray/ospcommon/vec.h"
+#ifdef USE_OSP
+# include "ospray/ospray.h"
+# include "ospray/ospcommon/vec.h"
+#else
+# error "Hmmm where is ospray?"
+#endif
+
+//
+// OpenMP
+//
+#ifdef USE_OMP
+# include <omp.h>
+#endif
+
+//
+// GLFW
+//
+//#include <glad/glad.h>
+//#include <GLFW/glfw3.h>
+
+//
+// GLM
+//
+//#include <glm/glm.hpp>
+//#include <glm/gtc/matrix_transform.hpp>
+//#include <glm/gtc/type_ptr.hpp>
 
 //
 // include cpp standard library
@@ -27,68 +57,9 @@
 #include <functional> // c++11
 #include <thread>
 
-//
-// OpenMP
-//
-#if defined(_OPENMP)
-# include <omp.h>
-#endif
-
-//
-// GLFW
-//
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-//
-// GLM
-//
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#ifndef EXIT_SUCCESS
-#define EXIT_SUCCESS 0
-#endif
-#ifndef EXIT_FAILURE
-#define EXIT_FAILURE 1
-#endif
-
-//! @name error check helper from EPFL ICG class
-static inline const char* ErrorString(GLenum error) {
-  const char* msg;
-  switch (error) {
-#define Case(Token)  case Token: msg = #Token; break;
-    Case(GL_INVALID_ENUM);
-    Case(GL_INVALID_VALUE);
-    Case(GL_INVALID_OPERATION);
-    Case(GL_INVALID_FRAMEBUFFER_OPERATION);
-    Case(GL_NO_ERROR);
-    Case(GL_OUT_OF_MEMORY);
-#undef Case
-  }
-  return msg;
-}
-
-//! @name check error
-static inline void _glCheckError
-(const char* file, int line, const char* comment) 
-{
-  GLenum error;
-  while ((error = glGetError()) != GL_NO_ERROR) {
-    fprintf(stderr, "ERROR: %s (file %s, line %i: %s).\n", comment, file, line, ErrorString(error));
-  }
-}
-
-#ifndef NDEBUG
-# define check_error_gl(x) _glCheckError(__FILE__, __LINE__, x)
-#else
-# define check_error_gl() ((void)0)
-#endif
-
 //! @name writePPM Helper function to write the rendered image as PPM file
 inline void writePPM
-(const char *fileName, const glm::ivec2 &size, const uint32_t *pixel) 
+(const char *fileName, const osp::vec2i &size, const uint32_t *pixel) 
 {
   using namespace ospcommon;
   FILE *file = fopen(fileName, "wb");

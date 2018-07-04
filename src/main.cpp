@@ -1,57 +1,21 @@
 #include "common.h"
-#include "trackball.h"
-#include "callback.h"
+#include "viewer/viewer.h"
 
-void SetupTF(const void *colors, const void *opacities, 
-	     int colorW, int colorH, int opacityW, int opacityH)
-{
-  //! setup trasnfer function
-  OSPData colorsData = ospNewData(colorW * colorH, OSP_FLOAT3, colors);
-  ospCommit(colorsData);
-  OSPData opacitiesData = ospNewData(opacityW * opacityH, OSP_FLOAT, opacities);
-  ospCommit(opacitiesData);
-  ospSetData(transferFcn, "colors",    colorsData);
-  ospSetData(transferFcn, "opacities", opacitiesData);
-  ospSetVec2f(transferFcn, "valueRange",
-  	      osp::vec2f{static_cast<float>(0),
-                         static_cast<float>(255)});
-  // ospSet1i(transferFcn, "colorWidth",    colorW);
-  // ospSet1i(transferFcn, "colorHeight",   colorH);
-  // ospSet1i(transferFcn, "opacityWidth",  opacityW);
-  // ospSet1i(transferFcn, "opacityHeight", opacityH);
-  ospCommit(transferFcn);
-  ospRelease(colorsData);
-  ospRelease(opacitiesData);
-}
+using namespace ospcommon;
 
-void volume(int argc, const char **argv) 
-{
-  //! transfer function
-  const std::vector<ospcommon::vec3f> colors = {
-    ospcommon::vec3f(0, 0, 0.563),
-    ospcommon::vec3f(0, 0, 1),
-    ospcommon::vec3f(0, 1, 1),
-    ospcommon::vec3f(0.5, 1, 0.5),
-    ospcommon::vec3f(1, 1, 0),
-    ospcommon::vec3f(1, 0, 0),
-    ospcommon::vec3f(0.5, 0, 0),
-  };
-  const std::vector<float> opacities = { 0.5f, 0.5f, 0.5f, 0.5f, 0.0f, 0.0f };
-  SetupTF(colors.data(), opacities.data(), 
-          colors.size(), 1, opacities.size(), 1);
-
-  //! create volume
 #define TYPE_CXX unsigned char
 #define TYPE_OSP OSP_UCHAR
 #define TYPE_STR "uchar"
 
+OSPVolume make_volume(int argc, const char **argv, OSPTransferFunction transferFcn) 
+{
+  //! create volume
   const ospcommon::vec3i dims(20, 10, 10);
   auto volumeData = new TYPE_CXX[dims.x * dims.y * dims.z];
-  cleanlist.push_back([=](){ delete[] volumeData; });
   for (int x = 0; x < dims.x; ++x) {
     for (int y = 0; y < dims.y; ++y) {
       for (int z = 0; z < dims.z; ++z) {
-	int c = sin(x/(float)(dims.x-1) * M_PI / 2.0) * 255.0;
+	int c = std::sin(x/(float)(dims.x-1) * M_PI / 2.0) * 255.0;
 	int i = z * dims.y * dims.x + y * dims.x + x;
 	volumeData[i] = (TYPE_CXX)c;
       }
@@ -60,99 +24,59 @@ void volume(int argc, const char **argv)
   
   //! create ospray volume
   auto t1 = std::chrono::system_clock::now();
-  {
-    OSPVolume volume = ospNewVolume("shared_structured_volume");
-    OSPData voxelData = ospNewData(dims.x * dims.y * dims.z, 
-				   TYPE_OSP, volumeData //, 
-				   /*OSP_DATA_SHARED_BUFFER*/);
-    cleanlist.push_back([=]() { ospRelease(volume); ospRelease(voxelData); });
-    ospSetString(volume, "voxelType", TYPE_STR);
-    ospSetVec3i(volume, "dimensions", (osp::vec3i&)dims);
-    ospSetVec3f(volume, "gridOrigin",  osp::vec3f{-dims.x/2.0f,-dims.y/2.0f,-dims.z/2.0f});
-    ospSetVec3f(volume, "gridSpacing", osp::vec3f{1.0f, 1.0f, 1.0f});
-    ospSet1f(volume, "samplingRate", 1.0f);
-    ospSet1i(volume, "gradientShadingEnabled", 0);
-    ospSet1i(volume, "useGridAccelerator", 0);
-    ospSet1i(volume, "adaptiveSampling", 0);
-    ospSet1i(volume, "preIntegration", 0);
-    ospSet1i(volume, "singleShade", 0);
-    ospSetData(volume, "voxelData", voxelData);
-    ospSetObject(volume, "transferFunction", transferFcn);
-    ospCommit(volume);
-    ospAddVolume(world, volume);
-  }
+  OSPVolume volume = ospNewVolume("shared_structured_volume");
+  OSPData voxelData = ospNewData(dims.x * dims.y * dims.z, 
+                                 TYPE_OSP, volumeData, 
+                                 OSP_DATA_SHARED_BUFFER);
+  ospSetString(volume, "voxelType", TYPE_STR);
+  ospSetVec3i(volume, "dimensions", (osp::vec3i&)dims);
+  ospSet3f(volume, "gridOrigin", -dims.x/2.0f, -dims.y/2.0f, -dims.z/2.0f);
+  ospSet3f(volume, "gridSpacing", 1.0f, 1.0f, 1.0f);
+  ospSet1f(volume, "samplingRate", 1.0f);
+  ospSet1i(volume, "gradientShadingEnabled", 0);
+  ospSet1i(volume, "useGridAccelerator", 0);
+  ospSet1i(volume, "adaptiveSampling", 0);
+  ospSet1i(volume, "preIntegration", 0);
+  ospSet1i(volume, "singleShade", 0);
+  ospSetData(volume, "voxelData", voxelData);
+  ospSetObject(volume, "transferFunction", transferFcn);
+  ospCommit(volume);  
   auto t2 = std::chrono::system_clock::now();
   std::chrono::duration<double> dur = t2 - t1;
   std::cout << "finish commits " << dur.count() << " seconds" << std::endl;
+  return volume;
 }
 
-int main(int argc, const char **argv)
+int main(int ac, const char **av)
 {
-  //---------------------------------------------------------------------------------------//
-  // OpenGL Setup
-  //---------------------------------------------------------------------------------------//
-  // Create Context
-  GLFWwindow* window = InitWindow();
-  check_error_gl("Initialized OpenGL");
+  int window = viewer::Init(ac, av, 800, 800);
 
-  //---------------------------------------------------------------------------------------//
-  // OSPRay Setup
-  //---------------------------------------------------------------------------------------//
-  ospInit(&argc, argv);
-  ospLoadModule("tfn");
+  ospInit(&ac, av);
   ospLoadModule("ispc");
   
-  //! Init camera and framebuffer
-  camera.Init();
-  framebuffer.Init(camera.CameraWidth(), camera.CameraHeight());
-
-  //! create world and renderer
-  world = ospNewModel();
-  renderer = ospNewRenderer("scivis"); 
-
-  //! setup volume/geometry
-  transferFcn = ospNewTransferFunction("piecewise_linear");
-  volume(argc, argv);    
+  OSPCamera camera = ospNewCamera("perspective");
+  OSPModel world = ospNewModel();
+  OSPRenderer renderer = ospNewRenderer("scivis"); 
+  OSPTransferFunction transferFcn = ospNewTransferFunction("piecewise_linear");
+  OSPVolume volume = make_volume(ac, av, transferFcn);    
+  ospAddVolume(world, volume);
   ospCommit(world);
 
-  //! lighting
-  OSPLight ambient_light = ospNewLight(renderer, "AmbientLight");
-  ospSet1f(ambient_light, "intensity", 0.0f);
-  ospCommit(ambient_light);
-  OSPLight directional_light = ospNewLight(renderer, "DirectionalLight");
-  ospSet1f(directional_light, "intensity", 2.0f);
-  ospSetVec3f(directional_light, "direction", osp::vec3f{20.0f, 20.0f, 20.0f});
-  ospCommit(directional_light);
-  std::vector<OSPLight> light_list { ambient_light, directional_light };
-  OSPData lights = ospNewData(light_list.size(), OSP_OBJECT, light_list.data());
-  ospCommit(lights);
-
-  //! renderer
   ospSetVec3f(renderer, "bgColor", osp::vec3f{0.5f, 0.5f, 0.5f});
-  ospSetData(renderer, "lights", lights);
   ospSetObject(renderer, "model", world);
-  ospSetObject(renderer, "camera", camera.OSPRayPtr());
+  ospSetObject(renderer, "camera", camera);
   ospSet1i(renderer, "shadowEnabled", 0);
   ospSet1i(renderer, "oneSidedLighting", 0);
   ospCommit(renderer);
-  //---------------------------------------------------------------------------------------//
-  // Render
-  //---------------------------------------------------------------------------------------//
-  while (!glfwWindowShouldClose(window))
-  {
-    // clear
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    // render
-    render();
-    // swap frame
-    glfwSwapBuffers(window);
-    glfwPollEvents();
-  }
-  ShutdownWindow(window);
-  glfwTerminate();
 
-  // exit
-  Clean();
+  viewer::Handler(camera, "perspective",
+                  osp::vec3f {0.f, 0.f, -20.f},
+                  osp::vec3f {0.f, 1.f, 0.f},
+                  osp::vec3f {0.f, 0.f, 0.f});
+  viewer::Handler(transferFcn, 0, 256);
+  viewer::Handler(world, renderer);
+  viewer::Render(window);
+
   return EXIT_SUCCESS;
 }
 

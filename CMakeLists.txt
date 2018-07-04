@@ -63,23 +63,13 @@ if (ospray_FOUND)
   endif ()
 endif ()
 #
-# TFN module
-#
-if(TFN_MODULE_ROOT)
-  include_directories(${TFN_MODULE_ROOT}/src)
-  set(TFN_MODULE_SRC
-    ${TFN_MODULE_ROOT}/src/TransferFunctionModule.cpp
-    ${TFN_MODULE_ROOT}/src/widgets/TransferFunctionWidget.cpp)
-  add_definitions(-DUSE_TFN_MODULE)
-  mark_as_advanced(TFN_MODULE_SRC)
-endif(TFN_MODULE_ROOT)
-#
 # make application
 #
-add_executable(renderer
-  src/main.cpp
-  ${TFN_MODULE_SRC})
+add_subdirectory(src/viewer)
+add_executable(renderer src/main.cpp)
 target_link_libraries(renderer
-  ospray glm imgui OpenGL glad glfw)
+  glm imgui OpenGL glad glfw
+  ospray
+  ospray_app_viewer)
 set_target_properties(renderer PROPERTIES
-  CXX_STANDARD 11)
+  CXX_STANDARD 14)
