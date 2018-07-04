@@ -48,10 +48,30 @@ inline void error_callback(int error, const char* description)
   fprintf(stderr, "Error: %s\n", description);
 }
 
-inline void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+inline void char_callback(GLFWwindow* window, unsigned int key)
 {
-  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-  { glfwSetWindowShouldClose(window, GLFW_TRUE); }
+  ImGui_ImplGlfwGL3_CharCallback(window, key);
+}
+
+inline void key_callback(GLFWwindow* window, int key, int scancode,
+                         int action, int mods)
+{
+  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+    glfwSetWindowShouldClose(window, GLFW_TRUE); 
+  } else {
+    ImGui_ImplGlfwGL3_KeyCallback(window, key, scancode, action, mods);
+  }
+}
+
+inline void mouse_button_callback(GLFWwindow* window, int button, 
+                                  int action, int mods)
+{
+  ImGui_ImplGlfwGL3_MouseButtonCallback(window, button, action, mods);
+}
+
+inline void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+  ImGui_ImplGlfwGL3_ScrollCallback(window, xoffset, yoffset);
 }
 
 inline void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
@@ -107,9 +127,13 @@ inline GLFWwindow* InitWindow()
 					NULL, NULL);
   if (!window) { glfwTerminate(); exit(EXIT_FAILURE); }
   // Callback
-  glfwSetKeyCallback(window, key_callback);
   glfwSetWindowSizeCallback(window, window_size_callback);
+  glfwSetCharCallback(window, char_callback);
+  glfwSetKeyCallback(window, key_callback);
+  glfwSetMouseButtonCallback(window, mouse_button_callback);
+  glfwSetScrollCallback(window, scroll_callback);
   glfwSetCursorPosCallback(window, cursor_position_callback);
+
   // Ready
   glfwMakeContextCurrent(window);
   gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
