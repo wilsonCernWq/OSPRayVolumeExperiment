@@ -39,4 +39,4 @@ target_include_directories(glad PUBLIC
 target_link_libraries(ospray${OSPRAY_APP_VIEWER_PREFIX}_app_viewer
   ospray imgui glfw OpenGL)
 set_target_properties(ospray${OSPRAY_APP_VIEWER_PREFIX}_app_viewer
-  PROPERTIES CXX_STANDARD 14)
+  PROPERTIES CXX_STANDARD 11)

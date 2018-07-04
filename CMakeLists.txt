@@ -72,4 +72,4 @@ target_link_libraries(renderer
   ospray
   ospray_app_viewer)
 set_target_properties(renderer PROPERTIES
-  CXX_STANDARD 14)
+  CXX_STANDARD 11)
