@@ -9,7 +9,7 @@ option(USE_OSPRAY "Use OSPRay Rendering Library to render a volume" ON)
 #
 cmake_host_system_information(RESULT SYSNAME QUERY HOSTNAME)
 message(STATUS "trying to include ${SYSNAME}.cmake configuration file")
-include(cmake/config-site/${SYSNAME}.cmake OPTIONAL RESULT_VARIABLE CONFIGFOUND)
+include(config-site/${SYSNAME}.cmake OPTIONAL RESULT_VARIABLE CONFIGFOUND)
 if (NOT CONFIGFOUND)
   message(STATUS "failed to load the configuration file")
   message(STATUS "helper message:
@@ -28,7 +28,7 @@ endif ()
 #
 # load required libraries
 #
-include(cmake/common.cmake)
+include(packages.cmake)
 #
 # load OSPRay
 #
