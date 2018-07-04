@@ -90,17 +90,15 @@ void WidgetStop() {
 void WidgetDraw() {
   ImGui_Impi_NewFrame();
 
-  // -- ImGUI Example:  
-  // ImGui::ShowTestWindow();
-
   // -- Main Menu
   // parameters
   static bool show_app_camera = false;
   static bool show_app_lights = false;
   static bool show_app_renderer = false;
   static bool show_app_tfn = true;
-  // metrics
+  // debug
   static bool show_app_fps = true;
+  static bool show_imgui_test_win = false;
   if (ImGui::BeginMainMenuBar()) {
     if (ImGui::BeginMenu("Parameters"))
     {
@@ -110,9 +108,10 @@ void WidgetDraw() {
       ImGui::MenuItem("Transfer Function", NULL, &show_app_tfn);
       ImGui::EndMenu();                 
     }
-    if (ImGui::BeginMenu("Metrics"))
+    if (ImGui::BeginMenu("Debug"))
     {
       ImGui::MenuItem("FPS", NULL, &show_app_fps);
+      ImGui::MenuItem("Show ImGui Test Window", NULL, &show_imgui_test_win);
       ImGui::EndMenu();
     }
     ImGui::EndMainMenuBar();
@@ -160,6 +159,11 @@ void WidgetDraw() {
     }
     ImGui::End();
     ImGui::PopStyleColor();
+  }
+
+  // -- ImGUI Example:  
+  if (show_imgui_test_win) {
+    ImGui::ShowTestWindow(&show_imgui_test_win);
   }
 
   ImGui::Render();
