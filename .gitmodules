@@ -1,6 +1,3 @@
-[submodule "external/glm"]
-	path = external/glm
-	url = https://github.com/g-truc/glm.git
 [submodule "external/imgui/upstream"]
 	path = external/imgui/upstream
 	url = https://github.com/ocornut/imgui.git
