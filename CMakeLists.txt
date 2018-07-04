@@ -1,31 +1,54 @@
 cmake_minimum_required(VERSION 2.8)
 project(OSPRayVolumeExperiment)
 #
+# options
+#
+option(USE_OSPRAY "Use OSPRay Rendering Library to render a volume" ON)
+#
 # include host specification file
+#
 cmake_host_system_information(RESULT SYSNAME QUERY HOSTNAME)
 message(STATUS "trying to include ${SYSNAME}.cmake configuration file")
 include(cmake/config-site/${SYSNAME}.cmake OPTIONAL RESULT_VARIABLE CONFIGFOUND)
 if (NOT CONFIGFOUND)
   message(STATUS "failed to load the configuration file")
   message(STATUS "helper message:
-    To build the program sucessfully, you might need to provide following paths to your cmake
-    *) path to your osprayConfig.cmake included in the OSPRay releases to CMake as '-Dospray_DIR=<..>'
-    *) path to the embreeConfig.cmake from the Embree releases similarly as '-Dembree_DIR=<..>'
-    *) path to the root directory of your standalone TBB library as '-DTBB_ROOT=<..>'
-    *) path to the root directory of your standalone ISPC executable as '-DISPC_EXECUTABLE=<..>'
+    To build the program sucessfully, you might need to 
+    provide following paths to your cmake
+    *) path to your osprayConfig.cmake included in the 
+       OSPRay releases to CMake as '-Dospray_DIR=<..>'
+    *) path to the embreeConfig.cmake from the Embree 
+       releases similarly as '-Dembree_DIR=<..>'
+    *) path to the root directory of your standalone TBB
+        library as '-DTBB_ROOT=<..>'
+    *) path to the root directory of your standalone ISPC
+        executable as '-DISPC_EXECUTABLE=<..>'
   ")
-endif()
+endif ()
 #
 # load required libraries
+#
 include(cmake/common.cmake)
 #
 # load OSPRay
-FIND_PACKAGE(ospray REQUIRED)
-INCLUDE_DIRECTORIES(${OSPRAY_INCLUDE_DIRS})
-LIST(APPEND COMMON_LIBS ${OSPRAY_LIBRARIES})
-MESSAGE(STATUS "OSPRAY_LIBRARIES ${OSPRAY_LIBRARIES}")
+#
+if(USE_OSPRAY)
+  find_package(ospray REQUIRED)
+else (USE_OSPRAY)
+  find_package(ospray QUIET)
+endif (USE_OSPRAY)
+if (ospray_FOUND)
+  if (NOT TARGET ospray)
+    add_library(ospray INTERFACE IMPORTED)
+    set_target_properties(ospray PROPERTIES
+      INTERFACE_COMPILE_DEFINITIONS USE_OSP=1
+      INTERFACE_INCLUDE_DIRECTORIES "${OSPRAY_INCLUDE_DIRS}"
+      INTERFACE_LINK_LIBRARIES "${OSPRAY_LIBRARIES}")
+  endif ()
+endif ()
 #
 # TFN module
+#
 if(TFN_MODULE_ROOT)
   include_directories(${TFN_MODULE_ROOT}/src)
   set(TFN_MODULE_SRC
@@ -35,11 +58,12 @@ if(TFN_MODULE_ROOT)
   mark_as_advanced(TFN_MODULE_SRC)
 endif(TFN_MODULE_ROOT)
 #
-# include sources
-file(GLOB_RECURSE CXX "src/*.cpp")
-file(GLOB_RECURSE HXX "src/*.h")
-add_executable(VolumeDisplay ${CXX} ${HXX} ${TFN_MODULE_SRC})
-target_link_libraries(VolumeDisplay ${COMMON_LIBS})
-set_target_properties(VolumeDisplay
-  PROPERTIES
+# make application
+#
+add_executable(renderer
+  src/main.cpp
+  ${TFN_MODULE_SRC})
+target_link_libraries(renderer
+  ospray glm imgui OpenGL glad glfw)
+set_target_properties(renderer PROPERTIES
   CXX_STANDARD 11)
