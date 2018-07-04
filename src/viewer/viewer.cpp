@@ -119,17 +119,17 @@ void WidgetDraw() {
   }
 
   if (show_app_camera) {
-    if (ImGui::Begin("Camera Parameters", &show_app_camera, NULL))
+    if (ImGui::Begin("Camera Parameters", &show_app_camera, 0))
     { camProp.Draw(); }
     ImGui::End();
   }
   if (show_app_lights) {
-    if (ImGui::Begin("Light Parameters", &show_app_lights, NULL))
+    if (ImGui::Begin("Light Parameters", &show_app_lights, 0))
     { litProp.Draw(); }
     ImGui::End();
   }
   if (show_app_renderer) {
-    if (ImGui::Begin("Renderer Parameters", &show_app_renderer, NULL))
+    if (ImGui::Begin("Renderer Parameters", &show_app_renderer, 0))
     { renProp.Draw(); }
     ImGui::End();
   }
@@ -156,7 +156,7 @@ void WidgetDraw() {
                      ImGuiWindowFlags_NoMove|
                      ImGuiWindowFlags_NoSavedSettings))
     {
-      ImGui::Text(("FPS: " + std::to_string(engine.GetFPS())).c_str());
+      ImGui::Text("FPS: %s", std::to_string(engine.GetFPS()).c_str());
     }
     ImGui::End();
     ImGui::PopStyleColor();
