@@ -8,7 +8,7 @@ endif ()
 #
 #--- OPENGL
 #
-if (NOT TARGET opengl)
+if (NOT TARGET OpenGL)
   find_package(OpenGL REQUIRED)
   add_library(OpenGL INTERFACE IMPORTED)
   set_target_properties(OpenGL PROPERTIES
