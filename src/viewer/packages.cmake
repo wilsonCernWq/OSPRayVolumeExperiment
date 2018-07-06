@@ -12,11 +12,13 @@ endif ()
 #--- GLFW
 #
 if (NOT TARGET glfw)
-  messate(FATAL_ERROR "cannot find glfw")
+  message(FATAL_ERROR "cannot find glfw")
 endif ()
 #
 #--- ImGUI
 #
 if (NOT TARGET imgui)
-  messate(FATAL_ERROR "cannot find imgui")
+  if (NOT TARGET ospray_imgui)
+    message(FATAL_ERROR "cannot find imgui")
+  endif ()
 endif ()
