@@ -58,6 +58,7 @@ namespace viewer {
      * @return current trackball matrix
      */
     const ospcommon::affine3f& Matrix() const;
+    const float& ZoomRatio() const;
     void Reset();
     void Reset(const ospcommon::affine3f &m);
 

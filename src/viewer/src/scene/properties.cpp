@@ -46,7 +46,7 @@ bool viewer::CameraProp::Commit()
   }
   if (type == Perspective) {
     if (fovy.update()) {
-      ospSet1f(self, "fovy", fovy.ref());
+      ospSet1f(self, "fovy", std::min(fovy.ref(), 180.f));
       update = true;
     }
   }
