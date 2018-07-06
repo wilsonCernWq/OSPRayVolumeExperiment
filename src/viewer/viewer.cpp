@@ -97,8 +97,8 @@ void WidgetDraw() {
   static bool show_app_renderer = false;
   static bool show_app_tfn = true;
   // debug
-  static bool show_app_fps = true;
-  static bool show_imgui_test_win = false;
+  static bool show_app_metrics = true;
+  static bool show_app_imgui_test_win = false;
   if (ImGui::BeginMainMenuBar()) {
     if (ImGui::BeginMenu("Parameters"))
     {
@@ -110,8 +110,8 @@ void WidgetDraw() {
     }
     if (ImGui::BeginMenu("Debug"))
     {
-      ImGui::MenuItem("FPS", NULL, &show_app_fps);
-      ImGui::MenuItem("Show ImGui Test Window", NULL, &show_imgui_test_win);
+      ImGui::MenuItem("Show Rendering Metrics", NULL, &show_app_metrics);
+      ImGui::MenuItem("Show ImGui Test Window", NULL, &show_app_imgui_test_win);
       ImGui::EndMenu();
     }
     ImGui::EndMainMenuBar();
@@ -134,8 +134,8 @@ void WidgetDraw() {
   }
   if (show_app_tfn) tfnProp.Draw(&show_app_tfn);
 
-  // -- draw FPS
-  if (show_app_fps) {
+  // -- draw Metrics
+  if (show_app_metrics) {
     static const float DISTANCE = 10.0f;
     static int corner = 0;
     ImVec2 window_pos = ImVec2((corner & 1) ? 
@@ -162,8 +162,8 @@ void WidgetDraw() {
   }
 
   // -- ImGUI Example:  
-  if (show_imgui_test_win) {
-    ImGui::ShowTestWindow(&show_imgui_test_win);
+  if (show_app_imgui_test_win) {
+    ImGui::ShowTestWindow(&show_app_imgui_test_win);
   }
 
   ImGui::Render();
