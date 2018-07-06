@@ -25,25 +25,24 @@ if (NOT TARGET glfw)
     set(GLFW_BUILD_TESTS    OFF)
     set(GLFW_INSTALL        OFF)
     add_subdirectory(${PROJECT_SOURCE_DIR}/external/glfw)
-    if (NOT TARGET glad)
-      add_library(glad
-        ${GLFW_SOURCE_DIR}/deps/glad/glad.h
-        ${GLFW_SOURCE_DIR}/deps/glad.c)
-      target_include_directories(glad PUBLIC
-        "$<BUILD_INTERFACE:"
-        "${PROJECT_SOURCE_DIR}/external/glfw;"
-        "${PROJECT_SOURCE_DIR}/external/glfw/include;"
-        "${PROJECT_SOURCE_DIR}/external/glfw/deps;"
-        ">")
-    endif ()
-    target_include_directories(glfw INTERFACE
-      "$<BUILD_INTERFACE:"
-      "${PROJECT_SOURCE_DIR}/external/glfw;"
-      "${PROJECT_SOURCE_DIR}/external/glfw/include;"
-      "${PROJECT_SOURCE_DIR}/external/glfw/deps;"
-      ">")
     set_target_properties(glfw PROPERTIES
       INTERFACE_COMPILE_DEFINITIONS USE_GLFW=1)
+    target_include_directories(glfw INTERFACE
+      "$<BUILD_INTERFACE:"
+      "${PROJECT_SOURCE_DIR}/external/deps;"
+      "${PROJECT_SOURCE_DIR}/external/glfw;"
+      "${PROJECT_SOURCE_DIR}/external/glfw/include;"
+      ">")
+    if (NOT TARGET glad)
+      add_library(glad
+        ${PROJECT_SOURCE_DIR}/external/deps/glad.c)
+      target_include_directories(glad PUBLIC
+        "$<BUILD_INTERFACE:"
+        "${PROJECT_SOURCE_DIR}/external/deps;"
+        "${PROJECT_SOURCE_DIR}/external/glfw;"
+        "${PROJECT_SOURCE_DIR}/external/glfw/include;"
+        ">")
+    endif ()
   else ()
     messate(FATAL_ERROR "cannot find glfw")
   endif ()
