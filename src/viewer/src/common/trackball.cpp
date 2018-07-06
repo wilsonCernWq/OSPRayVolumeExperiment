@@ -59,7 +59,6 @@ void viewer::Trackball::Drag(const float x, const float y)
 void viewer::Trackball::Zoom(const float x, const float y) 
 {
   zoom_new = std::max(1e-6f, zoom_new + (y - zoom_old));
-  std::cout << zoom_new << std::endl;
   zoom_old = y;
   UpdateMatrix();
 }

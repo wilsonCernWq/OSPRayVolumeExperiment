@@ -102,7 +102,7 @@ void WidgetDraw() {
   if (ImGui::BeginMainMenuBar()) {
     if (ImGui::BeginMenu("Parameters"))
     {
-      // ImGui::MenuItem("Camera", NULL, &show_app_camera);
+      ImGui::MenuItem("Camera", NULL, &show_app_camera);
       ImGui::MenuItem("Lights", NULL, &show_app_lights);
       ImGui::MenuItem("Renderer", NULL, &show_app_renderer);
       ImGui::MenuItem("Transfer Function", NULL, &show_app_tfn);
@@ -123,11 +123,13 @@ void WidgetDraw() {
     ImGui::End();
   }
   if (show_app_lights) {
+    ImGui::SetNextWindowSizeConstraints(ImVec2(250,200),ImVec2(FLT_MAX,FLT_MAX));
     if (ImGui::Begin("Light Parameters", &show_app_lights, 0))
     { litProp.Draw(); }
     ImGui::End();
   }
   if (show_app_renderer) {
+    ImGui::SetNextWindowSizeConstraints(ImVec2(250,400),ImVec2(FLT_MAX,FLT_MAX));
     if (ImGui::Begin("Renderer Parameters", &show_app_renderer, 0))
     { renProp.Draw(); }
     ImGui::End();

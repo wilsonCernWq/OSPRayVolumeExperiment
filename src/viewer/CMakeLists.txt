@@ -21,14 +21,13 @@ endif (TFN_MODULE)
 
 # build everything as a library
 add_library(ospray${OSPRAY_APP_VIEWER_PREFIX}_app_viewer
-  viewer.cpp
-  src/engine.cpp
-  src/camera.cpp
-  src/scene/properties.cpp
-  src/common/trackball.cpp
   ${TFN_MODULE_SRC}
-  external/glad.c
-  external/imgui_glfw_impi.cpp)
+  external/imgui_glfw_impi.cpp
+  src/common/trackball.cpp
+  src/scene/properties.cpp
+  src/camera.cpp
+  src/engine.cpp
+  viewer.cpp)
 set_target_properties(ospray${OSPRAY_APP_VIEWER_PREFIX}_app_viewer
   PROPERTIES CXX_STANDARD 11)
 target_include_directories(ospray${OSPRAY_APP_VIEWER_PREFIX}_app_viewer
@@ -40,10 +39,10 @@ target_include_directories(ospray${OSPRAY_APP_VIEWER_PREFIX}_app_viewer
   ">")
 target_link_libraries(ospray${OSPRAY_APP_VIEWER_PREFIX}_app_viewer
   glfw OpenGL)
-if (TARGET ospray_package)
+if (TARGET ospray_package) # if the viewer is built outside ospray source
   target_link_libraries(ospray${OSPRAY_APP_VIEWER_PREFIX}_app_viewer
     imgui ospray_package)
-else ()
+else () # if the package is built within an ospray module
   target_include_directories(ospray${OSPRAY_APP_VIEWER_PREFIX}_app_viewer
     PUBLIC "$<BUILD_INTERFACE:"
     "${PROJECT_SOURCE_DIR}/apps/exampleViewer/common/imgui;>")
