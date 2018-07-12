@@ -65,11 +65,12 @@ endif ()
 #
 # make application
 #
+set(APP_VIEWER_PREFIX tfn_module)
 add_subdirectory(src/viewer)
 add_executable(renderer src/main.cpp)
 target_link_libraries(renderer
   imgui OpenGL glad glfw
   ospray_package
-  ospray_app_viewer)
+  ${APP_VIEWER_PREFIX}_app_viewer)
 set_target_properties(renderer PROPERTIES
   CXX_STANDARD 11)

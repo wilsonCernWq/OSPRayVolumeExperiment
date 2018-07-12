@@ -87,6 +87,7 @@ int main(int ac, const char **av)
                   osp::vec3f {0.f, 0.f, -80.f},
                   osp::vec3f {0.f, 1.f, 0.f},
                   osp::vec3f {0.f, 0.f, 0.f});
+
   viewer::Handler(transferFcn, 0, 256);
   viewer::Handler(world, renderer);
   viewer::Render(window);
