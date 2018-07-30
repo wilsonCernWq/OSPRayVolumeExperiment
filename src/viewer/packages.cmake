@@ -25,6 +25,7 @@ endif ()
 #
 if (NOT TARGET glad)
   add_library(glad external/glad/glad.c)
+  set_target_properties(glad PROPERTIES COMPILE_FLAGS "-w")
   target_include_directories(glad PUBLIC
     "$<BUILD_INTERFACE:"
     "external/glad;"

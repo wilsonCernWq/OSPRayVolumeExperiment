@@ -7,31 +7,39 @@ endif ()
 include(packages.cmake)
 
 # transfer function widget
-set(TFN_MODULE_DEFAULT_ROOT 
-  ${PROJECT_SOURCE_DIR}/apps/exampleViewer/widgets/TransferFunctionModule) 
-if(TFN_MODULE_ROOT)
-  set(TFN_MODULE 1)
-elseif (EXISTS ${TFN_MODULE_DEFAULT_ROOT})
-  set(TFN_MODULE_ROOT ${TFN_MODULE_DEFAULT_ROOT})
-  set(TFN_MODULE 1)
-else ()
-  set(TFN_MODULE 0)
-endif ()
-if (TFN_MODULE)
-  set(TFN_MODULE_INCLUDE_DIR ${TFN_MODULE_ROOT}/src)
+find_path(TFN_MODULE_INCLUDE_DIR TransferFunctionModule.h
+  HINTS
+  ${PROJECT_SOURCE_DIR}/apps/exampleViewer/widgets/TransferFunctionModule/src
+  ${TFN_MODULE_ROOT}/src
+  NO_DEFAULT_PATH)
+if (TFN_MODULE_INCLUDE_DIR)
   set(TFN_MODULE_SRC 
-    ${TFN_MODULE_ROOT}/src/TransferFunctionModule.cpp
-    ${TFN_MODULE_ROOT}/src/widgets/TransferFunctionWidget.cpp)
-endif (TFN_MODULE)
+    ${TFN_MODULE_INCLUDE_DIR}/TransferFunctionModule.h
+    ${TFN_MODULE_INCLUDE_DIR}/TransferFunctionModule.cpp
+    ${TFN_MODULE_INCLUDE_DIR}/widgets/HelperFunctions.h
+    ${TFN_MODULE_INCLUDE_DIR}/widgets/DefaultTransferFunctionMaps.h
+    ${TFN_MODULE_INCLUDE_DIR}/widgets/TransferFunctionWidget.h
+    ${TFN_MODULE_INCLUDE_DIR}/widgets/TransferFunctionWidget.cpp)
+else  (TFN_MODULE_INCLUDE_DIR)
+  message(FATAL_ERROR "Cannot find Transfer Function Module.")
+endif (TFN_MODULE_INCLUDE_DIR)
 
 # build everything as a library
 add_library(${APP_VIEWER_PREFIX}_app_viewer
   ${TFN_MODULE_SRC}
+  external/imgui_glfw_impi.h
   external/imgui_glfw_impi.cpp
+  src/common/constants.h
+  src/common/navsphere.h
+  src/common/trackball.h
   src/common/trackball.cpp
+  src/scene/properties.h
   src/scene/properties.cpp
+  src/camera.h
   src/camera.cpp
+  src/engine.h
   src/engine.cpp
+  viewer.h
   viewer.cpp)
 set_target_properties(${APP_VIEWER_PREFIX}_app_viewer
   PROPERTIES CXX_STANDARD 11)
@@ -42,11 +50,9 @@ target_include_directories(${APP_VIEWER_PREFIX}_app_viewer
   "${CMAKE_CURRENT_LIST_DIR}/src;"
   "${CMAKE_CURRENT_LIST_DIR}/external;"
   ">")
-target_link_libraries(${APP_VIEWER_PREFIX}_app_viewer
-  glad glfw OpenGL)
+target_link_libraries(${APP_VIEWER_PREFIX}_app_viewer glad glfw OpenGL)
 if (TARGET ospray_package) # if the viewer is built outside ospray source
-  target_link_libraries(${APP_VIEWER_PREFIX}_app_viewer
-    imgui ospray_package)
+  target_link_libraries(${APP_VIEWER_PREFIX}_app_viewer imgui ospray_package)
 else () # if the package is built within an ospray module
   target_include_directories(${APP_VIEWER_PREFIX}_app_viewer
     PUBLIC "$<BUILD_INTERFACE:"

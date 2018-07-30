@@ -67,7 +67,9 @@ endif ()
 #
 set(APP_VIEWER_PREFIX tfn_module)
 add_subdirectory(src/viewer)
-add_executable(renderer src/main.cpp)
+add_executable(renderer 
+  src/common.h
+  src/main.cpp)
 target_link_libraries(renderer
   imgui OpenGL glad glfw
   ospray_package
