@@ -1,13 +1,13 @@
 #
 #--- OPENGL
 #
-if (NOT TARGET OpenGL)
-  find_package(OpenGL REQUIRED)
-  add_library(OpenGL INTERFACE IMPORTED)
-  set_target_properties(OpenGL PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
-    INTERFACE_LINK_LIBRARIES "${OPENGL_LIBRARIES}")
-endif ()
+# if (NOT TARGET OpenGL)
+#   find_package(OpenGL REQUIRED)
+#   add_library(OpenGL INTERFACE IMPORTED)
+#   set_target_properties(OpenGL PROPERTIES
+#     INTERFACE_INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
+#     INTERFACE_LINK_LIBRARIES "${OPENGL_LIBRARIES}")
+# endif ()
 #
 #--- GLFW
 #

@@ -6,7 +6,7 @@ if (NOT OpenGL_FOUND)
 endif ()
 if (NOT TARGET OpenGL::GL)
   add_library(OpenGL::GL INTERFACE IMPORTED)
-  set_target_properties(OpenGL PROPERTIES
+  set_target_properties(OpenGL::GL PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
     INTERFACE_LINK_LIBRARIES "${OPENGL_LIBRARIES}")
 endif ()
