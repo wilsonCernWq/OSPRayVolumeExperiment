@@ -51,8 +51,10 @@ target_include_directories(${APP_VIEWER_PREFIX}_app_viewer
   "${CMAKE_CURRENT_LIST_DIR}/external;"
   ">")
 target_link_libraries(${APP_VIEWER_PREFIX}_app_viewer glad glfw OpenGL)
-if (TARGET ospray_package) # if the viewer is built outside ospray source
-  target_link_libraries(${APP_VIEWER_PREFIX}_app_viewer imgui ospray_package)
+if (TARGET ospray::ospray) # if the viewer is built outside ospray source
+  target_link_libraries(${APP_VIEWER_PREFIX}_app_viewer imgui glfw glad OpenGL::GLU OpenGL::GL
+    ospray::ospray
+    ospray::ospray_common)
 else () # if the package is built within an ospray module
   target_include_directories(${APP_VIEWER_PREFIX}_app_viewer
     PUBLIC "$<BUILD_INTERFACE:"

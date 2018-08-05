@@ -1,20 +1,10 @@
 #
 # General Settings
 #
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   set(CMAKE_MACOSX_RPATH 1)
 endif ()
-#
-#--- OPENGL
-#
-if (NOT TARGET OpenGL)
-  find_package(OpenGL REQUIRED)
-  add_library(OpenGL INTERFACE IMPORTED)
-  set_target_properties(OpenGL PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
-    INTERFACE_LINK_LIBRARIES "${OPENGL_LIBRARIES}")
-endif ()
+include(cmake/OpenGLTargets.cmake)
 #
 #--- GLFW
 #

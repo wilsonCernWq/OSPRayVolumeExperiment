@@ -1,0 +1,18 @@
+#
+#--- OPENGL
+#
+if (NOT OpenGL_FOUND)
+  find_package(OpenGL REQUIRED)
+endif ()
+if (NOT TARGET OpenGL::GL)
+  add_library(OpenGL::GL INTERFACE IMPORTED)
+  set_target_properties(OpenGL PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
+    INTERFACE_LINK_LIBRARIES "${OPENGL_LIBRARIES}")
+endif ()
+if (NOT TARGET OpenGL::GLU)
+  add_library(OpenGL::GLU INTERFACE IMPORTED)
+  set_target_properties(OpenGL::GLU PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
+    INTERFACE_LINK_LIBRARIES "${OPENGL_glu_LIBRARY}")
+endif ()

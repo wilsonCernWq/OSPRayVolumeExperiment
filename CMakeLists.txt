@@ -28,40 +28,39 @@ endif ()
 #
 # load required libraries
 #
+# if(USE_OSPRAY)
+#   find_package(ospray REQUIRED)
+# else (USE_OSPRAY)
+#   find_package(ospray QUIET)
+# endif (USE_OSPRAY)
+# if (ospray_FOUND)
+#   if (NOT TARGET ospray_package)
+#     set(_skip_next_ OFF)
+#     set(_ospray_libs_ "")
+#     foreach (l ${OSPRAY_LIBRARIES})
+#       if ("${l}" STREQUAL "optimized")
+#         set(_skip_next_ ON)
+#       else ()
+#         if (_skip_next_)
+#           set(_skip_next_ OFF)
+#         else ()
+#           if (NOT "${l}" STREQUAL "debug")
+#             list(APPEND _ospray_libs_ ${l})
+#             message(STATUS ${l})
+#           endif ()
+#         endif ()
+#       endif ()
+#     endforeach()
+#     add_library(ospray_package INTERFACE IMPORTED)
+#     set_target_properties(ospray_package PROPERTIES
+#       INTERFACE_COMPILE_DEFINITIONS USE_OSP=1
+#       INTERFACE_INCLUDE_DIRECTORIES "${OSPRAY_INCLUDE_DIRS}"
+#       INTERFACE_LINK_LIBRARIES "${_ospray_libs_}")
+#   endif ()
+# endif ()
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+include(cmake/OSPRayTargets.cmake)
 include(packages.cmake)
-#
-# load OSPRay
-#
-if(USE_OSPRAY)
-  find_package(ospray REQUIRED)
-else (USE_OSPRAY)
-  find_package(ospray QUIET)
-endif (USE_OSPRAY)
-if (ospray_FOUND)
-  if (NOT TARGET ospray_package)
-    set(_skip_next_ OFF)
-    set(_ospray_libs_ "")
-    foreach (l ${OSPRAY_LIBRARIES})
-      if ("${l}" STREQUAL "optimized")
-        set(_skip_next_ ON)
-      else ()
-        if (_skip_next_)
-          set(_skip_next_ OFF)
-        else ()
-          if (NOT "${l}" STREQUAL "debug")
-            list(APPEND _ospray_libs_ ${l})
-            message(STATUS ${l})
-          endif ()
-        endif ()
-      endif ()
-    endforeach()
-    add_library(ospray_package INTERFACE IMPORTED)
-    set_target_properties(ospray_package PROPERTIES
-      INTERFACE_COMPILE_DEFINITIONS USE_OSP=1
-      INTERFACE_INCLUDE_DIRECTORIES "${OSPRAY_INCLUDE_DIRS}"
-      INTERFACE_LINK_LIBRARIES "${_ospray_libs_}")
-  endif ()
-endif ()
 #
 # make application
 #
@@ -71,8 +70,9 @@ add_executable(renderer
   src/common.h
   src/main.cpp)
 target_link_libraries(renderer
-  imgui OpenGL glad glfw
-  ospray_package
+  imgui glfw glad OpenGL::GL OpenGL::GLU
+  ospray::ospray
+  ospray::ospray_common
   ${APP_VIEWER_PREFIX}_app_viewer)
 set_target_properties(renderer PROPERTIES
   CXX_STANDARD 11)
