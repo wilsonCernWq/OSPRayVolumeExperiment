@@ -74,6 +74,7 @@ target_link_libraries(renderer
   imgui glfw glad OpenGL::GL OpenGL::GLU
   ospray::ospray
   ospray::ospray_common
+  ospray::ospray_module_ispc
   ${APP_VIEWER_PREFIX}_app_viewer)
 set_target_properties(renderer PROPERTIES
   CXX_STANDARD 11)
